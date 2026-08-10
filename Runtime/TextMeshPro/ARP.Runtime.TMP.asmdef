@@ -1,0 +1,30 @@
+{
+  "name": "ARP.Runtime.TMP",
+  "rootNamespace": "ARP",
+  "references": [
+    "ARP.Runtime",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "ARP_TMP"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.unity.textmeshpro",
+      "expression": "",
+      "define": "ARP_TMP"
+    },
+    {
+      "name": "com.unity.ugui",
+      "expression": "2.0.0",
+      "define": "ARP_TMP"
+    }
+  ],
+  "noEngineReferences": false
+}

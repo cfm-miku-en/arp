@@ -83,6 +83,17 @@ namespace ARP.Editor
             File.WriteAllText(TextPath, ToReadableText());
         }
 
+        // Sorted so the same build always produces the same text, which keeps a diff of
+        // arpConfig.js meaningful when only one library actually changed.
+        public string LibrariesJsArray()
+        {
+            if (ExpectedLibraries == null || ExpectedLibraries.Count == 0) return "[]";
+
+            var sorted = new List<string>(ExpectedLibraries);
+            sorted.Sort(StringComparer.Ordinal);
+            return "[\"" + string.Join("\", \"", sorted) + "\"]";
+        }
+
         public string ToCloudScriptSnippet()
         {
             var cert = HasCertificate ? SigningCertSha256 : "PASTE_SIGNING_CERT_SHA256_HERE";
@@ -90,7 +101,8 @@ namespace ARP.Editor
 
             return
                 "var ARP_EXPECTED_SIGNING_CERT_SHA256 = \"" + cert + "\";\n" +
-                "var ARP_EXPECTED_CONTENT_HASH = \"" + content + "\";";
+                "var ARP_EXPECTED_CONTENT_HASH = \"" + content + "\";\n" +
+                "var ARP_EXPECTED_LIBRARIES = " + LibrariesJsArray() + ";";
         }
 
         public string ToReadableText()
@@ -105,6 +117,8 @@ namespace ARP.Editor
                 "  " + (HasCertificate ? SigningCertSha256 : "<unavailable - " + CertificateNote + ">") + "\n\n" +
                 "Build content hash (changes every build - update before every release)\n" +
                 "  " + (HasContentHash ? BuildContentHash : "<unavailable>") + "\n\n" +
+                "Native libraries in this build (" + (ExpectedLibraries?.Count ?? 0) + ")\n" +
+                "  " + LibrariesJsArray() + "\n\n" +
                 "Paste into CloudScript/arpConfig.js:\n\n" +
                 ToCloudScriptSnippet() + "\n";
         }

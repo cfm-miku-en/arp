@@ -208,9 +208,7 @@ namespace ARP.Editor
                 EditorGUILayout.HelpBox(
                     "Compares executing code against the APK it was loaded from. This is the " +
                     "only check that sees in-memory patching, which with root leaves the signing " +
-                    "certificate, the content hash and Meta's app claim all valid.
-
-" +
+                    "certificate, the content hash and Meta's app claim all valid.\n\n" +
                     "Requires libarpnative.so - see SETUP.md. Without it this reports " +
                     "inconclusive rather than clean.",
                     MessageType.Info);

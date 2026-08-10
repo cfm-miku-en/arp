@@ -97,12 +97,8 @@ namespace ARP.Editor
         private void DrawStaleLibrariesWarning()
         {
             EditorGUILayout.HelpBox(
-                "Native plugins changed since this build.
-
-" +
-                ARPPluginWatcher.StaleDetail + "
-
-" +
+                "Native plugins changed since this build.\n\n" +
+                ARPPluginWatcher.StaleDetail + "\n\n" +
                 "These values are from the previous build and do not reflect that. Rebuild " +
                 "before pasting anything, or you will be pasting a list that flags your own " +
                 "players.",
@@ -115,12 +111,8 @@ namespace ARP.Editor
             var added = _record.AddedLibraries();
 
             EditorGUILayout.HelpBox(
-                "The native library set changed since your last build.
-
-" +
-                (added.Count > 0 ? "New: " + string.Join(", ", added) + "
-
-" : string.Empty) +
+                "The native library set changed since your last build.\n\n" +
+                (added.Count > 0 ? "New: " + string.Join(", ", added) + "\n\n" : string.Empty) +
                 "Repaste ARP_EXPECTED_LIBRARIES into arpConfig.js. Until you do, every " +
                 "legitimate player carrying the new library will be flagged as tampered.",
                 MessageType.Warning);

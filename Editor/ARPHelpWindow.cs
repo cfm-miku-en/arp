@@ -189,8 +189,7 @@ namespace ARP.Editor
                 "modloader_scotland2          libsl2.so present\n" +
                 "modloader_questloader        libmodloader.so present\n" +
                 "mods_directory_present       a Mods/ or MelonLoader/ directory exists\n" +
-                "unexpected_native_library    an .so that was not in your build
-" +
+                "unexpected_native_library    an .so that was not in your build\n" +
                 "cheat_tool_installed         a known mod menu or loader installer is present");
 
             GUILayout.Space(8);
@@ -209,8 +208,7 @@ namespace ARP.Editor
                 "su_executable                su actually ran\n" +
                 "root_package_installed       a root manager is installed\n" +
                 "test_keys                    custom ROM build tags (never fires on Quest)\n" +
-                "blocklisted_hardware         this device is on ARP's own blocklist
-" +
+                "blocklisted_hardware         this device is on ARP's own blocklist\n" +
                 "verification_obstructed      too many checks could not be determined");
 
             GUILayout.Space(8);
@@ -245,9 +243,7 @@ namespace ARP.Editor
                 "be forged. It can still be bypassed two ways: a client can simply omit it, and " +
                 "a relay can obtain a genuine token from a clean device and pass it through a " +
                 "modified one. ARP now treats a missing token as a signal; the relay is " +
-                "architectural and Play Integrity has the same weakness.
-
-" +
+                "architectural and Play Integrity has the same weakness.\n\n" +
                 "So attestation is much harder and more expensive to defeat than anything else " +
                 "here - not impossible.");
 

@@ -1,7 +1,13 @@
 CLAUDE.md
+CLAUDE.md.meta
 thingy.md
+thingy.md.meta
 test.md
+test.md.meta
 .claude/
 .git/
 .gitignore
+.npmignore
 NativeSource/build/
+*.tgz
+*.tgz.meta

@@ -1,11 +1,25 @@
 # Working files, not for the public repo
 .claude/
 CLAUDE.md
+CLAUDE.md.meta
 thingy.md
+thingy.md.meta
 test.md
+test.md.meta
+
+# Unity .meta files ARE committed on purpose - do not add *.meta here.
+#
+# They carry the GUIDs that link scripts to scenes and prefabs. Without them every
+# install regenerates GUIDs, so updating the package turns every ARPManager component
+# in a user's project into "Missing (Mono Script)". libarpnative.so.meta also holds
+# the Android/ARM64 import settings, without which Unity is left to infer them.
 
 # Native build output (the source and build scripts ARE committed)
 NativeSource/build/
+
+# Packed release tarballs from npm pack - attach to the GitHub release, do not commit
+*.tgz
+*.tgz.meta
 
 # Checksum output, written per-build in a consuming project
 ARP/

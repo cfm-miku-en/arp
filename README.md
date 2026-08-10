@@ -10,6 +10,8 @@ every ban happens in CloudScript.
 1. **Tools → ARP → PlayFab Tutorial** - walks through the whole backend setup and
    has copy buttons for every CloudScript file.
 2. **Tools → ARP → Add ARP Manager to Scene**, then wire the four events.
+   For the ban message, add an **ARP Ban Display** component and point it at a
+   `TMP_Text` — or bind `OnBanConfirmed` to your own UI directly.
 3. Build the native library - see [SETUP.md](SETUP.md).
 4. Add the manifest `<queries>` block below.
 
