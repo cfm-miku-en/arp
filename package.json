@@ -1,8 +1,8 @@
 {
   "name": "com.arp.androidrootprotector",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "displayName": "AndroidRootProtector",
-  "description": "Server-authoritative tamper and root detection for Quest/Android games on PlayFab. Detects patched APKs and mod loaders via the Meta Attestation API and build checksums, detects compromised headsets via local device checks, and enforces bans through PlayFab CloudScript.",
+  "description": "Server-authoritative tamper and root detection for Quest/Android games on PlayFab. Detects patched APKs and mod loaders via the Meta Attestation API and build checksums, detects compromised headsets via local device checks, and enforces bans through PlayFab CloudScript.\n\nDEV TEST BUILD - nothing here has been tested beyond compiling. Run enforcementMode as FlagForReview.",
   "unity": "2021.3",
   "license": "Apache-2.0",
   "author": {
@@ -20,12 +20,5 @@
     "anti-cheat",
     "attestation",
     "root-detection"
-  ],
-  "samples": [
-    {
-      "displayName": "CloudScript",
-      "description": "The four CloudScript functions ARP requires, plus the optional PlayStream login-capture action used for IP bans.",
-      "path": "CloudScript"
-    }
   ]
 }
