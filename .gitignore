@@ -6,6 +6,8 @@ thingy.md
 thingy.md.meta
 test.md
 test.md.meta
+ANTILIB.md
+ANTILIB.md.meta
 
 # Unity .meta files ARE committed on purpose - do not add *.meta here.
 #

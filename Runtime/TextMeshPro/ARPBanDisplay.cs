@@ -77,6 +77,11 @@ namespace ARP
 
             if (showBans) manager.OnBanConfirmed.AddListener(Show);
             if (showIntegrityFailures) manager.OnIntegrityCheckFailed.AddListener(ShowIntegrity);
+
+            // Covers the case where the ban already happened in a previous scene. Put
+            // this component in your ban scene and it fills itself in on load, with no
+            // event to have missed.
+            if (showBans && ARPManager.WasBanned) Show(ARPManager.LastBanMessage);
         }
 
         private void OnDisable()

@@ -27,6 +27,15 @@ handlers.arpVerifyIntegrity = function (args, context) {
     var hardSignals = [];
     var softSignals = [];
 
+    // A third bucket, and the reason is worth stating. "We detected something" and "we
+    // could not check" are not the same claim, but under AutoBan both used to ban.
+    // A player whose Wi-Fi dropped produces no attestation token; a player missing the
+    // native library produces a pile of indeterminate checks. Neither did anything
+    // wrong, and on a large playerbase both happen constantly.
+    //
+    // Indeterminate signals are always recorded and never ban, whatever the mode.
+    var indeterminateSignals = [];
+
     // Everything the client scanned is soft by construction: it was produced inside a
     // process the attacker controls. Only the signed attestation claims and the
     // server-held checksums are allowed to be hard.
@@ -38,7 +47,7 @@ handlers.arpVerifyIntegrity = function (args, context) {
     // treating "could not determine" as "fine" is how hiders win. Enough silence is
     // itself the signal.
     if (inconclusive.length >= ARP_INCONCLUSIVE_THRESHOLD) {
-        softSignals.push("device:verification_obstructed");
+        indeterminateSignals.push("device:verification_obstructed");
         log.info("ARP: " + inconclusive.length + " checks were indeterminate: " +
                  inconclusive.join(", "));
     }
@@ -52,7 +61,7 @@ handlers.arpVerifyIntegrity = function (args, context) {
         // made the strongest layer optional from the client's side. Never silent
         // again. Kept soft because no-Wi-Fi, an uninitialised SDK and Meta's
         // 200/day cap all produce a legitimately absent token.
-        softSignals.push("app:attestation_missing");
+        indeterminateSignals.push("app:attestation_missing");
         log.info("ARP: no attestation token. Client reported: " +
                  (arpString(args, "attestationError", 256) || "no reason given"));
     }
@@ -156,9 +165,9 @@ handlers.arpVerifyIntegrity = function (args, context) {
         log.info("ARP: installed by " + installSource + ", expected " + ARP_EXPECTED_INSTALLER);
     }
 
-    var allSignals = hardSignals.concat(softSignals);
+    var allSignals = hardSignals.concat(softSignals).concat(indeterminateSignals);
 
-    if (hardSignals.length === 0 && softSignals.length === 0) {
+    if (allSignals.length === 0) {
         return response;
     }
 

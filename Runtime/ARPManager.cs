@@ -167,6 +167,13 @@ namespace ARP
         public IARPTransport Transport => _transport;
         public ARPHeartbeat Heartbeat => _heartbeat;
 
+        /// Survives a scene load, unlike a UnityEvent listener. A common ban flow is to
+        /// send the player to a dedicated scene, by which point the object that raised
+        /// OnBanConfirmed is gone and the message with it.
+        public static string LastBanMessage { get; private set; }
+
+        public static bool WasBanned => !string.IsNullOrEmpty(LastBanMessage);
+
         public void SetTransport(IARPTransport transport) => _transport = transport;
 
         private void Start() => StartCoroutine(RunStartupCheck());
@@ -293,6 +300,7 @@ namespace ARP
 
             if (verdict.Banned)
             {
+                LastBanMessage = verdict.PlayerMessage ?? BuildPlayerMessage();
                 OnBanConfirmed?.Invoke(verdict.PlayerMessage ?? BuildPlayerMessage());
             }
             else if (verdict.Flagged)
