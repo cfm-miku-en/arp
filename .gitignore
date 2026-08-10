@@ -60,7 +60,7 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Signing material — never commit a keystore
+# Signing material - never commit a keystore
 *.keystore
 *.jks
 *.p12

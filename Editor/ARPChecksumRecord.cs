@@ -71,8 +71,8 @@ namespace ARP.Editor
                 "Build     : " + OutputPath + "\n" +
                 "Built at  : " + BuiltAtUtc + " UTC\n\n" +
                 "Signing certificate SHA-256 (set once, does not change between builds)\n" +
-                "  " + (HasCertificate ? SigningCertSha256 : "<unavailable — " + CertificateNote + ">") + "\n\n" +
-                "Build content hash (changes every build — update before every release)\n" +
+                "  " + (HasCertificate ? SigningCertSha256 : "<unavailable - " + CertificateNote + ">") + "\n\n" +
+                "Build content hash (changes every build - update before every release)\n" +
                 "  " + (HasContentHash ? BuildContentHash : "<unavailable>") + "\n\n" +
                 "Paste into CloudScript/arpConfig.js:\n\n" +
                 ToCloudScriptSnippet() + "\n";

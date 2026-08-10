@@ -3,7 +3,7 @@
 
 // The only file you edit. Paste from Unity: Tools > ARP > Show Last Build Checksums.
 // A value left at its placeholder SKIPS that comparison rather than failing it.
-// The Meta App Secret belongs here and nowhere else — never in the client.
+// The Meta App Secret belongs here and nowhere else - never in the client.
 
 var ARP_EXPECTED_SIGNING_CERT_SHA256 = "PASTE_SIGNING_CERT_SHA256_HERE";
 var ARP_EXPECTED_CONTENT_HASH = "PASTE_BUILD_CONTENT_HASH_HERE";
@@ -12,6 +12,11 @@ var ARP_META_APP_ID = "";
 var ARP_META_APP_SECRET = "";
 
 var ARP_NONCE_TTL_SECONDS = 300;
+
+// How many checks may come back "could not determine" before the silence is itself
+// the signal. A root hider does not make a device look clean so much as make it
+// unreadable, and treating unreadable as clean is how hiders win.
+var ARP_INCONCLUSIVE_THRESHOLD = 5;
 
 var ARP_HEARTBEAT_MISS_THRESHOLD = 4;
 

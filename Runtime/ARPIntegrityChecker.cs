@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 #if UNITY_ANDROID && !UNITY_EDITOR
 using UnityEngine;
@@ -13,6 +14,13 @@ namespace ARP
     public static class ARPIntegrityChecker
     {
         private const int GetSigningCertificates = 0x08000000;
+
+        // Populated while the content hash walks the zip, so the library check costs no
+        // second enumeration. Populate() runs the hash before the check for that reason.
+        public static readonly HashSet<string> ApkLibraryNames = new HashSet<string>(StringComparer.Ordinal);
+
+        [DllImport("arpnative", EntryPoint = "arp_list_app_libraries")]
+        private static extern int NativeListAppLibraries(byte[] buffer, int size);
 
         private static readonly string[] SideloadInstallers =
         {
@@ -42,8 +50,24 @@ namespace ARP
 
             CheckInstallSource(report, distribution);
             CheckModLoaderArtifacts(report.Signals);
+            CheckLoadedLibraries(report.Signals);
 #else
             report.Signals.Inconclusive("app:not_android");
+#endif
+        }
+
+        // Re-runnable on its own so the monitor loop can repeat it. Injection after
+        // startup is the case this check exists for, and a one-shot at launch would miss
+        // exactly that. Requires Populate to have run first, since the expected set comes
+        // from the zip walk.
+        public static void ScanLoadedLibraries(ARPScanResult signals)
+        {
+            if (signals == null) throw new ArgumentNullException(nameof(signals));
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+            CheckLoadedLibraries(signals);
+#else
+            signals.Inconclusive(ARPCheckIds.AppUnexpectedNativeLibrary);
 #endif
         }
 
@@ -117,6 +141,12 @@ namespace ARP
                                 var name = entry.Call<string>("getName");
 
                                 if (!ARPHashSpec.IsHashedEntry(name)) continue;
+
+                                if (name.StartsWith("lib/", StringComparison.Ordinal))
+                                {
+                                    var slash = name.LastIndexOf('/');
+                                    ApkLibraryNames.Add(slash >= 0 ? name.Substring(slash + 1) : name);
+                                }
 
                                 entries.Add(new ARPZipEntry(
                                     name,
@@ -228,6 +258,62 @@ namespace ARP
                 }
             }
             catch (Exception) { signals.Inconclusive(ARPCheckIds.AppModsDirectoryPresent); }
+        }
+
+        // Every hardcoded artifact list shares one flaw: it only finds libraries someone
+        // already named. An injected loader called anything else walks straight past it.
+        //
+        // This inverts the question. Instead of asking whether a known-bad library is
+        // present, it asks whether anything is executing that the APK does not ship -
+        // which catches arbitrary names, and catches runtime injection that never touched
+        // the APK at all and so leaves the content hash intact.
+        private static void CheckLoadedLibraries(ARPScanResult signals)
+        {
+            if (!ARPRootDetector.NativeAvailable || ApkLibraryNames.Count == 0)
+            {
+                signals.Inconclusive(ARPCheckIds.AppUnexpectedNativeLibrary);
+                return;
+            }
+
+            var buffer = new byte[8192];
+            int count;
+
+            try
+            {
+                count = NativeListAppLibraries(buffer, buffer.Length);
+            }
+            catch (Exception)
+            {
+                signals.Inconclusive(ARPCheckIds.AppUnexpectedNativeLibrary);
+                return;
+            }
+
+            if (count <= 0)
+            {
+                signals.Inconclusive(ARPCheckIds.AppUnexpectedNativeLibrary);
+                return;
+            }
+
+            foreach (var loaded in SplitNulTerminated(buffer))
+            {
+                if (ApkLibraryNames.Contains(loaded)) continue;
+
+                signals.Trigger(ARPCheckIds.AppUnexpectedNativeLibrary);
+                return;
+            }
+        }
+
+        private static IEnumerable<string> SplitNulTerminated(byte[] buffer)
+        {
+            var start = 0;
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                if (buffer[i] != 0) continue;
+                if (i == start) yield break;
+
+                yield return Encoding.UTF8.GetString(buffer, start, i - start);
+                start = i + 1;
+            }
         }
 
         private static string LoaderCheckId(string library)

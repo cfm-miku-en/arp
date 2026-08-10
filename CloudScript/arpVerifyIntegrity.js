@@ -16,22 +16,41 @@ handlers.arpVerifyIntegrity = function (args, context) {
     var contentHash = arpString(args, "buildContentHash", 128);
     var deviceFingerprint = arpString(args, "deviceFingerprint", 128);
     var clientChecks = arpStringArray(args, "triggeredChecks", 64, 128);
+    var inconclusive = arpStringArray(args, "inconclusiveChecks", 64, 128);
 
     var policy = arpNormalizePolicy(args ? args.policy : null);
 
     var hardSignals = [];
     var softSignals = [];
 
+    // Everything the client scanned is soft by construction: it was produced inside a
+    // process the attacker controls. Only the signed attestation claims and the
+    // server-held checksums are allowed to be hard.
     for (var i = 0; i < clientChecks.length; i++) {
-        if (clientChecks[i].indexOf("device:") === 0 || clientChecks[i].indexOf("app:modloader") === 0) {
-            softSignals.push(clientChecks[i]);
-        } else {
-            softSignals.push(clientChecks[i]);
-        }
+        softSignals.push(clientChecks[i]);
+    }
+
+    // A root hider does not make a device look clean, it makes it unreadable - and
+    // treating "could not determine" as "fine" is how hiders win. Enough silence is
+    // itself the signal.
+    if (inconclusive.length >= ARP_INCONCLUSIVE_THRESHOLD) {
+        softSignals.push("device:verification_obstructed");
+        log.info("ARP: " + inconclusive.length + " checks were indeterminate: " +
+                 inconclusive.join(", "));
     }
 
     if (deviceFingerprint && arpIsDeviceBanned(deviceFingerprint)) {
         hardSignals.push("device:blocklisted_hardware");
+    }
+
+    if (arpAttestationConfigured() && !attestationToken) {
+        // A client that simply omits the token used to skip this whole block, which
+        // made the strongest layer optional from the client's side. Never silent
+        // again. Kept soft because no-Wi-Fi, an uninitialised SDK and Meta's
+        // 200/day cap all produce a legitimately absent token.
+        softSignals.push("app:attestation_missing");
+        log.info("ARP: no attestation token. Client reported: " +
+                 (arpString(args, "attestationError", 256) || "no reason given"));
     }
 
     if (attestationToken && arpAttestationConfigured()) {
@@ -66,7 +85,7 @@ handlers.arpVerifyIntegrity = function (args, context) {
             hardSignals.push("app:signing_cert_mismatch");
         }
     } else {
-        log.info("ARP: ARP_EXPECTED_SIGNING_CERT_SHA256 is unset — certificate check skipped.");
+        log.info("ARP: ARP_EXPECTED_SIGNING_CERT_SHA256 is unset - certificate check skipped.");
     }
 
     if (arpContentHashConfigured()) {
@@ -76,7 +95,7 @@ handlers.arpVerifyIntegrity = function (args, context) {
             hardSignals.push("app:content_hash_mismatch");
         }
     } else {
-        log.info("ARP: ARP_EXPECTED_CONTENT_HASH is unset — content hash check skipped. " +
+        log.info("ARP: ARP_EXPECTED_CONTENT_HASH is unset - content hash check skipped. " +
                  "Update it from Unity: Tools > ARP > Show Last Build Checksums.");
     }
 
@@ -175,7 +194,12 @@ function arpVerifyAttestationToken(token, clientNonce) {
     }
 
     var claimNonce = claims.nonce || claims.challenge_nonce || null;
-    if (claimNonce && !arpSecureEquals(claimNonce, stored.nonce)) {
+    if (!claimNonce) {
+        outcome.error = "signed claims carried no nonce field - cannot rule out replay";
+        return outcome;
+    }
+
+    if (!arpSecureEquals(claimNonce, stored.nonce)) {
         outcome.replayed = true;
         outcome.error = "claim nonce does not match the issued challenge";
         return outcome;

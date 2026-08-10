@@ -20,6 +20,10 @@ namespace ARP.Editor
         private SerializedProperty _appIntegrityChecksEnabled;
         private SerializedProperty _deviceChecksEnabled;
         private SerializedProperty _scanDelaySeconds;
+        private SerializedProperty _continuousMonitoring;
+        private SerializedProperty _quickScanInterval;
+        private SerializedProperty _fullScanInterval;
+        private SerializedProperty _memoryIntegrityEnabled;
 
         private SerializedProperty _banMode;
         private SerializedProperty _timedDuration;
@@ -54,6 +58,10 @@ namespace ARP.Editor
             _appIntegrityChecksEnabled = serializedObject.FindProperty("appIntegrityChecksEnabled");
             _deviceChecksEnabled = serializedObject.FindProperty("deviceChecksEnabled");
             _scanDelaySeconds = serializedObject.FindProperty("scanDelaySeconds");
+            _continuousMonitoring = serializedObject.FindProperty("continuousMonitoring");
+            _quickScanInterval = serializedObject.FindProperty("quickScanInterval");
+            _fullScanInterval = serializedObject.FindProperty("fullScanInterval");
+            _memoryIntegrityEnabled = serializedObject.FindProperty("memoryIntegrityEnabled");
 
             _banMode = serializedObject.FindProperty("banMode");
             _timedDuration = serializedObject.FindProperty("timedDuration");
@@ -103,7 +111,7 @@ namespace ARP.Editor
             EditorGUILayout.HelpBox(
                 "ARP is one component on one GameObject. Anyone who can modify your APK can " +
                 "delete it. If the only integrity check in your game lives in here, removing " +
-                "ARP removes the check — so put an independent CloudScript call directly in " +
+                "ARP removes the check - so put an independent CloudScript call directly in " +
                 "your netcode, not routed through this component.",
                 MessageType.Warning);
 
@@ -128,7 +136,7 @@ namespace ARP.Editor
                     "Everything else in this component is computed inside the process an attacker " +
                     "controls and can be patched out. The attestation token is signed by Meta's " +
                     "server, which is the one thing a modded client cannot fake. It is also the " +
-                    "only reliable way to catch a repacked APK — which is how Quest games are " +
+                    "only reliable way to catch a repacked APK - which is how Quest games are " +
                     "actually cheated, with the headset left completely stock.",
                     MessageType.Warning);
             }
@@ -163,6 +171,50 @@ namespace ARP.Editor
             EditorGUILayout.PropertyField(_appIntegrityChecksEnabled, new GUIContent("App Integrity Checks"));
             EditorGUILayout.PropertyField(_deviceChecksEnabled, new GUIContent("Device Checks"));
             EditorGUILayout.PropertyField(_scanDelaySeconds, new GUIContent("Scan Delay (seconds)"));
+
+            GUILayout.Space(6);
+            EditorGUILayout.PropertyField(_continuousMonitoring, new GUIContent("Continuous Monitoring"));
+
+            if (_continuousMonitoring.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(_quickScanInterval, new GUIContent("Quick Scan (seconds)"));
+                EditorGUILayout.PropertyField(_fullScanInterval, new GUIContent("Full Scan (seconds)"));
+                EditorGUI.indentLevel--;
+
+                if (_fullScanInterval.floatValue < _quickScanInterval.floatValue)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Full scan interval is shorter than the quick one, so every pass will be " +
+                        "a full scan. That spawns a process and walks the package list every " +
+                        "time - measure the frame cost before shipping it.",
+                        MessageType.Warning);
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    "With monitoring off, ARP checks once at startup and never again. Anyone who " +
+                    "roots or attaches to the process after launch stays invisible for the rest " +
+                    "of the session, and the heartbeat just resends the startup result.",
+                    MessageType.Warning);
+            }
+
+            GUILayout.Space(6);
+            EditorGUILayout.PropertyField(_memoryIntegrityEnabled, new GUIContent("Memory Integrity"));
+
+            if (_memoryIntegrityEnabled.boolValue)
+            {
+                EditorGUILayout.HelpBox(
+                    "Compares executing code against the APK it was loaded from. This is the " +
+                    "only check that sees in-memory patching, which with root leaves the signing " +
+                    "certificate, the content hash and Meta's app claim all valid.
+
+" +
+                    "Requires libarpnative.so - see SETUP.md. Without it this reports " +
+                    "inconclusive rather than clean.",
+                    MessageType.Info);
+            }
 
             EndSection();
         }
@@ -234,7 +286,7 @@ namespace ARP.Editor
             {
                 EditorGUILayout.HelpBox(
                     "IP bans need the arpRecordLoginContext PlayStream rule wired to " +
-                    "player_logged_in — CloudScript cannot see the caller's IP, so without that " +
+                    "player_logged_in - CloudScript cannot see the caller's IP, so without that " +
                     "rule there is nothing on record and this target is skipped.\n\n" +
                     "They also hit everyone behind the address: household members share it, and " +
                     "under CGNAT so do strangers.",
@@ -247,7 +299,7 @@ namespace ARP.Editor
                     "PlayFab has no hardware ban, so ARP keeps its own blocklist keyed on a " +
                     "hashed ANDROID_ID.\n\n" +
                     "This is a pseudo-HWID, not a console-style hardware ban. A factory reset " +
-                    "clears it, and a rooted device — exactly the population you are targeting — " +
+                    "clears it, and a rooted device - exactly the population you are targeting - " +
                     "can spoof it. It raises the cost of ban evasion; it does not end it.",
                     MessageType.Info);
             }
@@ -301,7 +353,7 @@ namespace ARP.Editor
             else
             {
                 EditorGUILayout.HelpBox(
-                    "With the heartbeat off, a one-shot check at startup is all you have — and " +
+                    "With the heartbeat off, a one-shot check at startup is all you have - and " +
                     "anyone who can disable this component skips it entirely.",
                     MessageType.Warning);
             }

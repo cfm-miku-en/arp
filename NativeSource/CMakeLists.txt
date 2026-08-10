@@ -30,5 +30,5 @@ target_link_options(arpnative PRIVATE
     -s
 )
 
-# No NDK libraries needed — raw syscalls only, and log output would be a gift to
+# No NDK libraries needed - raw syscalls only, and log output would be a gift to
 # anyone watching logcat to find out what triggered.

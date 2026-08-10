@@ -36,6 +36,7 @@ namespace ARP
             {
                 { "attestationToken", report.AttestationToken },
                 { "attestationNonce", report.AttestationNonce },
+                { "attestationError", report.AttestationError },
                 { "signingCertSha256", report.SigningCertSha256 },
                 { "buildContentHash", report.BuildContentHash },
                 { "installSource", report.InstallSourcePackage },

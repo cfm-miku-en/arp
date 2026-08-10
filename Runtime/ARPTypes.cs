@@ -68,6 +68,12 @@ namespace ARP
         Hardware = 1 << 2,
     }
 
+    public enum ARPScanDepth
+    {
+        Quick = 0,
+        Full = 1,
+    }
+
     public enum ARPSignalTier
     {
         AppTamper = 0,
@@ -109,6 +115,7 @@ namespace ARP
     {
         public string AttestationToken;
         public string AttestationNonce;
+        public string AttestationError;
 
         public string SigningCertSha256;
         public string BuildContentHash;

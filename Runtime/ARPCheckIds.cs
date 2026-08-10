@@ -6,6 +6,9 @@ namespace ARP
     public static class ARPCheckIds
     {
         public const string AppAttestationNotRecognized = "app:attestation_not_recognized";
+        public const string AppAttestationMissing = "app:attestation_missing";
+        public const string AppCodePagesDirty = "app:code_pages_dirty";
+        public const string AppCodePatched = "app:code_patched";
         public const string AppSigningCertMismatch = "app:signing_cert_mismatch";
         public const string AppContentHashMismatch = "app:content_hash_mismatch";
         public const string AppUnexpectedInstallSource = "app:unexpected_install_source";
@@ -14,6 +17,7 @@ namespace ARP
         public const string AppModLoaderQuestLoader = "app:modloader_questloader";
         public const string AppModsDirectoryPresent = "app:mods_directory_present";
         public const string AppUnexpectedNativeLibrary = "app:unexpected_native_library";
+        public const string AppCheatToolInstalled = "app:cheat_tool_installed";
 
         public const string DeviceSelinuxPermissive = "device:selinux_permissive";
         public const string DeviceAttestationNotTrusted = "device:attestation_not_trusted";
@@ -29,6 +33,7 @@ namespace ARP
         public const string DeviceSuExecutable = "device:su_executable";
         public const string DeviceRootPackageInstalled = "device:root_package_installed";
         public const string DeviceTestKeys = "device:test_keys";
+        public const string DeviceVerificationObstructed = "device:verification_obstructed";
 
         public const string BeatMissedThreshold = "beat:missed_threshold";
         public const string BeatSequenceRegression = "beat:sequence_regression";

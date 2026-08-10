@@ -47,7 +47,7 @@ function arpApplyBan(policy, triggeredChecks, deviceFingerprint) {
             bans.push(ipBan);
         } else {
             result.skippedTargets.push(
-                "IpAddress:no IP on record — wire the arpRecordLoginContext PlayStream " +
+                "IpAddress:no IP on record - wire the arpRecordLoginContext PlayStream " +
                 "rule to player_logged_in");
         }
     }

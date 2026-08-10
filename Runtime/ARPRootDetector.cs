@@ -30,7 +30,11 @@ namespace ARP
 
         private static readonly string[] APatchPaths = { "/data/adb/ap", "/data/adb/apd" };
 
-        private static readonly string[] RootPackages =
+        // Public because the editor generates the manifest <queries> block from this
+        // exact array. Two hand-maintained copies of the same list would drift, and the
+        // failure is silent: an undeclared package reports "not installed" identically
+        // to one that genuinely is not there.
+        public static readonly string[] RootPackages =
         {
             "com.topjohnwu.magisk", "io.github.huskydg.magisk", "me.weishu.kernelsu",
             "me.bmax.apatch", "eu.chainfire.supersu", "com.noshufou.android.su",
@@ -39,6 +43,20 @@ namespace ARP
             "de.robv.android.xposed.installer", "org.lsposed.manager",
             "com.saurik.substrate", "com.devadvance.rootcloak", "com.devadvance.rootcloakplus",
             "com.formyhm.hideroot", "com.amphoras.hidemyroot",
+            "com.amphoras.hidemyrootadfree", "io.github.vvb2060.magisk",
+            "org.meowcat.edxposed.manager",
+        };
+
+        // On-device cheat tooling: mod-loader installers and standalone mod menus.
+        // Separate from RootPackages because a mod menu means the app is compromised,
+        // not the headset, and reporting it under a device: id would mis-tier it.
+        //
+        // Ships empty on purpose. Package ids here have to be real - a guessed one is a
+        // check that silently never fires while looking like coverage. Get them with
+        // "adb shell pm list packages" on a device that has the tool, add them here, then
+        // run Tools > ARP > Regenerate Android Queries Manifest.
+        public static readonly string[] CheatToolPackages =
+        {
         };
 
         private static readonly string[] LayerProbePaths =
@@ -87,14 +105,18 @@ namespace ARP
 #endif
         }
 
-        public static ARPScanResult Scan()
+        public static ARPScanResult Scan(ARPScanDepth depth = ARPScanDepth.Full)
         {
             var result = new ARPScanResult();
-            foreach (var _ in ScanIncremental(result)) { }
+            foreach (var _ in ScanIncremental(result, depth)) { }
             return result;
         }
 
-        public static IEnumerable<string> ScanIncremental(ARPScanResult result)
+        // Quick covers everything that is a file read or a proc parse, so it is cheap
+        // enough to repeat every few seconds. Full adds the two that are not: spawning
+        // a process for the su probe, and walking the package list over JNI.
+        public static IEnumerable<string> ScanIncremental(
+            ARPScanResult result, ARPScanDepth depth = ARPScanDepth.Full)
         {
             if (result == null) throw new ArgumentNullException(nameof(result));
 
@@ -116,14 +138,17 @@ namespace ARP
             CheckSuBinaries(result);
             yield return "su_paths";
 
-            CheckSuExecutable(result);
-            yield return "su_exec";
+            if (depth == ARPScanDepth.Full)
+            {
+                CheckSuExecutable(result);
+                yield return "su_exec";
 
-            CheckRootPackages(result);
-            yield return "packages";
+                CheckRootPackages(result);
+                yield return "packages";
 
-            CheckBuildTags(result);
-            yield return "build_tags";
+                CheckBuildTags(result);
+                yield return "build_tags";
+            }
 #else
             result.Inconclusive("device:not_android");
             yield return "skipped";
@@ -265,16 +290,19 @@ namespace ARP
                 {
                     foreach (var package in RootPackages)
                     {
-                        try
+                        if (IsInstalled(pm, package))
                         {
-                            using (pm.Call<AndroidJavaObject>("getPackageInfo", package, 0))
-                            {
-                                result.Trigger(ARPCheckIds.DeviceRootPackageInstalled);
-                                return;
-                            }
+                            result.Trigger(ARPCheckIds.DeviceRootPackageInstalled);
+                            break;
                         }
-                        catch (Exception)
+                    }
+
+                    foreach (var package in CheatToolPackages)
+                    {
+                        if (IsInstalled(pm, package))
                         {
+                            result.Trigger(ARPCheckIds.AppCheatToolInstalled);
+                            break;
                         }
                     }
                 }
@@ -297,6 +325,21 @@ namespace ARP
                 }
             }
             catch (Exception) { result.Inconclusive(ARPCheckIds.DeviceTestKeys); }
+        }
+
+        private static bool IsInstalled(AndroidJavaObject packageManager, string package)
+        {
+            try
+            {
+                using (packageManager.Call<AndroidJavaObject>("getPackageInfo", package, 0))
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private static bool AnyPathExists(string[] paths)

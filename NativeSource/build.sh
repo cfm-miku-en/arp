@@ -7,7 +7,7 @@
 #   ./build.sh
 #   ANDROID_NDK_HOME=/path/to/ndk ./build.sh
 #
-# Needs the Android NDK and CMake. Both ship with Unity's Android module — see
+# Needs the Android NDK and CMake. Both ship with Unity's Android module - see
 # SETUP.md if you would rather point at Unity's copy than install your own.
 
 set -euo pipefail

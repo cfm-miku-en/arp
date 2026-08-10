@@ -25,7 +25,7 @@ namespace ARP
 
     public static class ARPHashSpec
     {
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;
 
         public static bool IsHashedEntry(string entryName)
         {
@@ -33,6 +33,15 @@ namespace ARP
 
             if (entryName.StartsWith("lib/", StringComparison.Ordinal)) return true;
             if (entryName.Equals("AndroidManifest.xml", StringComparison.Ordinal)) return true;
+
+            // The whole Unity data directory, not just code. Most on-device Quest modding
+            // goes through UABEA, which edits resources.assets, sharedassets*, level* and
+            // data.unity3d - none of which are code, all of which change the game. A
+            // filter tuned only for mod loaders calls that clean.
+            //
+            // Cheap despite the breadth: this directory is a few dozen entries even on a
+            // large title, and only names, sizes and stored CRCs are read.
+            if (entryName.StartsWith("assets/bin/Data/", StringComparison.Ordinal)) return true;
 
             if (entryName.StartsWith("classes", StringComparison.Ordinal) &&
                 entryName.EndsWith(".dex", StringComparison.Ordinal) &&

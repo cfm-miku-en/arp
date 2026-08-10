@@ -16,7 +16,7 @@ namespace ARP.Editor
 
         public static void Show(ARPChecksumRecord record)
         {
-            var window = GetWindow<ARPChecksumWindow>(true, "ARP — Build Checksums", true);
+            var window = GetWindow<ARPChecksumWindow>(true, "ARP - Build Checksums", true);
             window._record = record ?? ARPChecksumRecord.Load();
             window.minSize = new Vector2(620, 520);
             window.Focus();

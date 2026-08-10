@@ -25,7 +25,7 @@ namespace ARP.Editor
         [MenuItem("Tools/ARP/Help", false, 2)]
         public static void Open()
         {
-            var window = GetWindow<ARPHelpWindow>(false, "ARP — Help", true);
+            var window = GetWindow<ARPHelpWindow>(false, "ARP - Help", true);
             window.minSize = new Vector2(640, 560);
             window.Focus();
         }
@@ -81,7 +81,7 @@ namespace ARP.Editor
                 "path that way without a single ban being issued.");
 
             GUILayout.Space(6);
-            Heading("2. If Ban Hardware is ticked — use a throwaway headset");
+            Heading("2. If Ban Hardware is ticked - use a throwaway headset");
             Body(
                 "The device blocklist is keyed on a hash of your headset's ANDROID_ID, and it " +
                 "follows the hardware rather than the account. Banning yourself means a fresh " +
@@ -94,7 +94,7 @@ namespace ARP.Editor
                 "fingerprint's entry from that JSON blob.");
 
             GUILayout.Space(6);
-            Heading("3. If Ban IP Address is ticked — use a VPN");
+            Heading("3. If Ban IP Address is ticked - use a VPN");
             Body(
                 "Otherwise you are banning your own home connection.\n\n" +
                 "That does not just lock out the account you were testing with. It locks out " +
@@ -115,7 +115,7 @@ namespace ARP.Editor
             Body(
                 "Account and IP bans: Game Manager > Players > select the player > Bans > revoke. " +
                 "IP bans appear in the same list.\n\n" +
-                "Hardware bans are not PlayFab bans and will not appear there — PlayFab has no " +
+                "Hardware bans are not PlayFab bans and will not appear there - PlayFab has no " +
                 "hardware ban, so ARP keeps its own list. See above.");
 
             GUILayout.Space(8);
@@ -130,7 +130,7 @@ namespace ARP.Editor
             Heading("Every player is suddenly flagged");
             Body(
                 "Almost always a checksum that no longer matches. The build content hash changes " +
-                "with every build — if you shipped a new APK without updating arpConfig.js, every " +
+                "with every build - if you shipped a new APK without updating arpConfig.js, every " +
                 "legitimate player now mismatches.\n\n" +
                 "Clear ARP_EXPECTED_CONTENT_HASH back to its placeholder to disable that check " +
                 "immediately, then repaste from Tools > ARP > Show Last Build Checksums.");
@@ -147,7 +147,7 @@ namespace ARP.Editor
             Heading("DllNotFoundException: arpnative");
             Body(
                 "The native library is not in the APK. Select the .so and confirm the import " +
-                "settings say Android and ARM64 — Unity excludes it silently otherwise. " +
+                "settings say Android and ARM64 - Unity excludes it silently otherwise. " +
                 "See SETUP.md.");
 
             GUILayout.Space(6);
@@ -179,41 +179,45 @@ namespace ARP.Editor
                 "means a heartbeat pattern.");
 
             GUILayout.Space(8);
-            Heading("app: — the binary is modified");
+            Heading("app: - the binary is modified");
             Mono(
                 "attestation_not_recognized   Meta says this is not a Store binary\n" +
-                "signing_cert_mismatch        signed with a different key — repacked\n" +
+                "signing_cert_mismatch        signed with a different key - repacked\n" +
                 "content_hash_mismatch        APK contents differ from the build you shipped\n" +
                 "unexpected_install_source    installed by adb or a raw installer\n" +
                 "modloader_melonloader        libmelonloader.so present\n" +
                 "modloader_scotland2          libsl2.so present\n" +
                 "modloader_questloader        libmodloader.so present\n" +
                 "mods_directory_present       a Mods/ or MelonLoader/ directory exists\n" +
-                "unexpected_native_library    an .so that was not in your build");
+                "unexpected_native_library    an .so that was not in your build
+" +
+                "cheat_tool_installed         a known mod menu or loader installer is present");
 
             GUILayout.Space(8);
-            Heading("device: — the headset is compromised");
+            Heading("device: - the headset is compromised");
             Mono(
-                "selinux_permissive           SELinux is not enforcing — strongest signal\n" +
+                "selinux_permissive           SELinux is not enforcing - strongest signal\n" +
                 "attestation_not_trusted      unlocked bootloader or invalid OS image\n" +
                 "attestation_basic            locked and valid, some integrity checks failed\n" +
                 "magisk_artifact              Magisk files on disk\n" +
                 "kernelsu_artifact            KernelSU files on disk\n" +
                 "apatch_artifact              APatch files on disk\n" +
                 "suspicious_mount             magisk or /data/adb in the mount table\n" +
-                "zygisk_context               unexpected SELinux context — possible injection\n" +
-                "layer_disagreement           native and Java disagree — something is hooked\n" +
+                "zygisk_context               unexpected SELinux context - possible injection\n" +
+                "layer_disagreement           native and Java disagree - something is hooked\n" +
                 "su_binary_present            an su binary exists\n" +
                 "su_executable                su actually ran\n" +
                 "root_package_installed       a root manager is installed\n" +
                 "test_keys                    custom ROM build tags (never fires on Quest)\n" +
-                "blocklisted_hardware         this device is on ARP's own blocklist");
+                "blocklisted_hardware         this device is on ARP's own blocklist
+" +
+                "verification_obstructed      too many checks could not be determined");
 
             GUILayout.Space(8);
-            Heading("beat: — heartbeat patterns");
+            Heading("beat: - heartbeat patterns");
             Mono(
                 "missed_threshold             too many consecutive intervals missed\n" +
-                "sequence_regression          sequence number did not advance — replay\n" +
+                "sequence_regression          sequence number did not advance - replay\n" +
                 "no_session_end               session stopped mid-flow with no clean close");
 
             GUILayout.Space(8);
@@ -231,15 +235,21 @@ namespace ARP.Editor
             Body(
                 "Everything except the Meta attestation token is computed inside the process an " +
                 "attacker controls, which means all of it can be patched out. The checksums, " +
-                "every root check, the mod-loader scan — a modder who finds the comparison inside " +
+                "every root check, the mod-loader scan - a modder who finds the comparison inside " +
                 "libil2cpp.so can send back whatever ARP expects to see.\n\n" +
                 "What that buys you is cost. The job goes from \"run QuestPatcher\" to \"run " +
                 "QuestPatcher, then locate and patch ARP\". That is a real barrier for the " +
                 "population that actually cheats on Quest, and no barrier at all for someone " +
                 "determined.\n\n" +
-                "The attestation token is different because Meta's server signs it. A modified " +
-                "client cannot produce a valid one. If you can use attestation, it is worth more " +
-                "than everything else here combined.");
+                "The attestation token is different because Meta's server signs it, so it cannot " +
+                "be forged. It can still be bypassed two ways: a client can simply omit it, and " +
+                "a relay can obtain a genuine token from a clean device and pass it through a " +
+                "modified one. ARP now treats a missing token as a signal; the relay is " +
+                "architectural and Play Integrity has the same weakness.
+
+" +
+                "So attestation is much harder and more expensive to defeat than anything else " +
+                "here - not impossible.");
 
             GUILayout.Space(6);
             Heading("Ban evasion is cheap");
@@ -252,7 +262,7 @@ namespace ARP.Editor
             GUILayout.Space(6);
             Heading("The heartbeat cannot see its own death");
             Body(
-                "When the beats stop, nothing calls the server to report it — silence produces no " +
+                "When the beats stop, nothing calls the server to report it - silence produces no " +
                 "request. ARP judges the previous session when the next one begins, so a killed " +
                 "watchdog is caught on the player's next launch rather than in the moment.");
 

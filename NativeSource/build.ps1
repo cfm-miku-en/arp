@@ -6,7 +6,7 @@
 #   .\build.ps1
 #   .\build.ps1 -NdkPath "C:\Android\ndk\27.0.12077973"
 #
-# Needs the Android NDK and CMake. Both ship with Unity's Android module — see
+# Needs the Android NDK and CMake. Both ship with Unity's Android module - see
 # SETUP.md if you would rather point at Unity's copy than install your own.
 
 param(

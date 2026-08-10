@@ -43,7 +43,7 @@ namespace ARP.Editor
         [MenuItem("Tools/ARP/PlayFab Tutorial", false, 1)]
         public static void Open()
         {
-            var window = GetWindow<ARPTutorialWindow>(false, "ARP — PlayFab Tutorial", true);
+            var window = GetWindow<ARPTutorialWindow>(false, "ARP - PlayFab Tutorial", true);
             window.minSize = new Vector2(680, 600);
             window._cloudScriptDirectory = null;
             window.Focus();
@@ -81,7 +81,7 @@ namespace ARP.Editor
             Step("1. Create a PlayFab title");
             Body(
                 "Sign in at developer.playfab.com and create a title if you do not have one. " +
-                "Copy its Title ID from Settings > API Features — it is a short alphanumeric " +
+                "Copy its Title ID from Settings > API Features - it is a short alphanumeric " +
                 "code like A1B2C.");
 
             EditorGUILayout.BeginHorizontal();
@@ -103,7 +103,7 @@ namespace ARP.Editor
             Step("2. Install the PlayFab Unity SDK");
             Body(
                 "Import the PlayFab Unity SDK, then set your Title ID in the PlayFab editor " +
-                "extensions panel. Log the player in before ARP runs — ARP waits for an " +
+                "extensions panel. Log the player in before ARP runs - ARP waits for an " +
                 "authenticated session and gives up after 30 seconds, because detection with " +
                 "nowhere to report is worth nothing.");
 
@@ -130,7 +130,7 @@ namespace ARP.Editor
                 Body(
                     "ARP's PlayFab transport compiles only when ARP_PLAYFAB is defined. If you " +
                     "installed PlayFab as a UPM package that happens automatically. The SDK is " +
-                    "more often shipped as a .unitypackage, which UPM cannot see — in that case " +
+                    "more often shipped as a .unitypackage, which UPM cannot see - in that case " +
                     "add the define yourself.");
 
                 if (GUILayout.Button("Add ARP_PLAYFAB to Android scripting defines", GUILayout.Width(340)))
@@ -238,7 +238,7 @@ namespace ARP.Editor
             Step("5. Paste your checksums into arpConfig.js");
             Body(
                 "Make a non-development Android build. ARP opens a window with two values.\n\n" +
-                "The signing certificate hash is set once and never changes — Meta does not " +
+                "The signing certificate hash is set once and never changes - Meta does not " +
                 "re-sign uploads, so your certificate is fixed for the life of the title.\n\n" +
                 "The build content hash changes every build. Update it before every release, or " +
                 "your own players will look tampered.\n\n" +
@@ -260,7 +260,7 @@ namespace ARP.Editor
                 "This is the only check in ARP a modder cannot forge, because the token is " +
                 "signed by Meta's server rather than by anything on the headset. It is also the " +
                 "only thing that reliably catches a repacked APK, which is how Quest games are " +
-                "actually cheated — the headset stays completely stock, so no root check sees it.\n\n" +
+                "actually cheated - the headset stays completely stock, so no root check sees it.\n\n" +
                 "You need a Meta developer app. Store and App Lab both work. Copy the App ID and " +
                 "App Secret into ARP_META_APP_ID and ARP_META_APP_SECRET in arpConfig.js.\n\n" +
                 "The secret goes in CloudScript and nowhere else. Never in the client, never in " +
@@ -278,7 +278,7 @@ namespace ARP.Editor
             Note(
                 "Meta caps attestation at 100 requests per hour and 200 per day per device, and " +
                 "tokens last 24 hours. ARP fetches one per session and caches it. Do not try to " +
-                "attest on every heartbeat — at a 30 second interval that is 2,880 calls a day " +
+                "attest on every heartbeat - at a 30 second interval that is 2,880 calls a day " +
                 "and it will hard-fail.");
 
             EndStep();
@@ -289,7 +289,7 @@ namespace ARP.Editor
             Step("7. IP bans (optional)");
             Body(
                 "Only needed if you tick 'Ban IP address' on ARPManager.\n\n" +
-                "CloudScript cannot see the caller's IP address — the context object exposes the " +
+                "CloudScript cannot see the caller's IP address - the context object exposes the " +
                 "PlayStream event, the player profile and the triggering task, and none of them " +
                 "carry an address. The login PlayStream event does, so ARP captures it there.\n\n" +
                 "In Game Manager: Automation > Rules > New Rule.\n" +
@@ -311,10 +311,10 @@ namespace ARP.Editor
             Body(
                 "Drop the Android Root Protector component onto a GameObject that survives scene " +
                 "loads, then wire the events:\n\n" +
-                "  OnBanConfirmed        — show the ban message and close out the session\n" +
-                "  OnBanReportFailed     — your call, but do not let the player carry on by default\n" +
-                "  OnHeartbeatFailed     — sever your own network connections here\n" +
-                "  OnIntegrityCheckFailed — the binary is wrong rather than the headset\n\n" +
+                "  OnBanConfirmed        - show the ban message and close out the session\n" +
+                "  OnBanReportFailed     - your call, but do not let the player carry on by default\n" +
+                "  OnHeartbeatFailed     - sever your own network connections here\n" +
+                "  OnIntegrityCheckFailed - the binary is wrong rather than the headset\n\n" +
                 "Then read the recommendation at the top of the component's Inspector. It matters " +
                 "more than any single setting on it.");
 
@@ -326,7 +326,7 @@ namespace ARP.Editor
             var builder = new StringBuilder();
             var failed = new List<string>();
 
-            builder.Append("// ARP CloudScript — concatenated for a single PlayFab revision.\n");
+            builder.Append("// ARP CloudScript - concatenated for a single PlayFab revision.\n");
             builder.Append("// Generated from the ARP package on ")
                    .Append(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))
                    .Append(" UTC.\n\n");

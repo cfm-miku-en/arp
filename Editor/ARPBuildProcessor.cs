@@ -60,7 +60,7 @@ namespace ARP.Editor
                     "[ARP] This build is an .aab. The content hash is computed over the APK a " +
                     "player actually installs, and an app bundle is repackaged before it gets " +
                     "there, so a hash taken from the .aab would never match on device. Build an " +
-                    "APK — Meta Horizon accepts APKs — or disable the content hash check and " +
+                    "APK - Meta Horizon accepts APKs - or disable the content hash check and " +
                     "rely on the signing certificate instead.");
                 return null;
             }
