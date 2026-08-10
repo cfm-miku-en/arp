@@ -18,6 +18,8 @@ namespace ARP
         public const string AppModsDirectoryPresent = "app:mods_directory_present";
         public const string AppUnexpectedNativeLibrary = "app:unexpected_native_library";
         public const string AppCheatToolInstalled = "app:cheat_tool_installed";
+        public const string AppDisguisedLibFolder = "app:disguised_lib_folder";
+        public const string AppLibrariesMissing = "app:libraries_missing";
 
         public const string DeviceSelinuxPermissive = "device:selinux_permissive";
         public const string DeviceAttestationNotTrusted = "device:attestation_not_trusted";

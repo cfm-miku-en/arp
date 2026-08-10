@@ -19,6 +19,15 @@ namespace ARP
         // second enumeration. Populate() runs the hash before the check for that reason.
         public static readonly HashSet<string> ApkLibraryNames = new HashSet<string>(StringComparer.Ordinal);
 
+        // What is genuinely mapped into the process, which is the only view that does not
+        // care what the APK folder is called, what the file is called, or whether the
+        // library was ever in the APK at all.
+        public static readonly HashSet<string> LoadedLibraryNames = new HashSet<string>(StringComparer.Ordinal);
+
+        // Folders holding a .so that are not lib/. Android loads natives from lib/ and
+        // nowhere else.
+        public static readonly HashSet<string> DisguisedLibraryPaths = new HashSet<string>(StringComparer.Ordinal);
+
         [DllImport("arpnative", EntryPoint = "arp_list_app_libraries")]
         private static extern int NativeListAppLibraries(byte[] buffer, int size);
 
@@ -54,6 +63,15 @@ namespace ARP
 
             report.ApkLibraries.Clear();
             report.ApkLibraries.AddRange(ApkLibraryNames);
+            report.LoadedLibraries.Clear();
+            report.LoadedLibraries.AddRange(LoadedLibraryNames);
+            report.DisguisedLibraryPaths.Clear();
+            report.DisguisedLibraryPaths.AddRange(DisguisedLibraryPaths);
+
+            if (DisguisedLibraryPaths.Count > 0)
+            {
+                report.Signals.Trigger(ARPCheckIds.AppDisguisedLibFolder);
+            }
 #else
             report.Signals.Inconclusive("app:not_android");
 #endif
@@ -142,6 +160,18 @@ namespace ARP
                             using (var entry = enumeration.Call<AndroidJavaObject>("nextElement"))
                             {
                                 var name = entry.Call<string>("getName");
+
+                                // Before the hash filter, because a native library parked
+                                // outside lib/ would be filtered out and never seen. Android
+                                // does not load natives from anywhere else, so nothing
+                                // legitimate puts one there - renaming the folder is a trick
+                                // aimed at checks that look up a path by name.
+                                if (name.EndsWith(".so", StringComparison.Ordinal) &&
+                                    !name.StartsWith("lib/", StringComparison.Ordinal))
+                                {
+                                    var dir = name.LastIndexOf('/');
+                                    DisguisedLibraryPaths.Add(dir >= 0 ? name.Substring(0, dir) : name);
+                                }
 
                                 if (!ARPHashSpec.IsHashedEntry(name)) continue;
 
@@ -272,7 +302,9 @@ namespace ARP
         // the APK at all and so leaves the content hash intact.
         private static void CheckLoadedLibraries(ARPScanResult signals)
         {
-            if (!ARPRootDetector.NativeAvailable || ApkLibraryNames.Count == 0)
+            LoadedLibraryNames.Clear();
+
+            if (!ARPRootDetector.NativeAvailable)
             {
                 signals.Inconclusive(ARPCheckIds.AppUnexpectedNativeLibrary);
                 return;
@@ -298,6 +330,22 @@ namespace ARP
             }
 
             foreach (var loaded in SplitNulTerminated(buffer))
+            {
+                LoadedLibraryNames.Add(loaded);
+            }
+
+            // Local comparison against the APK is a convenience only, and it is skipped
+            // when the APK view is empty rather than treated as clean - a renamed lib/
+            // folder produces exactly that. The comparison that actually decides anything
+            // happens server-side against the build-time list, which no amount of
+            // renaming inside the APK can influence.
+            if (ApkLibraryNames.Count == 0)
+            {
+                signals.Inconclusive(ARPCheckIds.AppUnexpectedNativeLibrary);
+                return;
+            }
+
+            foreach (var loaded in LoadedLibraryNames)
             {
                 if (ApkLibraryNames.Contains(loaded)) continue;
 

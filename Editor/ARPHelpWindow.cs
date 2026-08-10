@@ -190,7 +190,9 @@ namespace ARP.Editor
                 "modloader_questloader        libmodloader.so present\n" +
                 "mods_directory_present       a Mods/ or MelonLoader/ directory exists\n" +
                 "unexpected_native_library    an .so that was not in your build\n" +
-                "cheat_tool_installed         a known mod menu or loader installer is present");
+                "cheat_tool_installed         a known mod menu or loader installer is present\n" +
+                "disguised_lib_folder         a .so sits outside lib/, where none belongs\n" +
+                "libraries_missing            libraries this build shipped are not loaded");
 
             GUILayout.Space(8);
             Heading("device: - the headset is compromised");

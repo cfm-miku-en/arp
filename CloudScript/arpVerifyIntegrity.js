@@ -17,6 +17,8 @@ handlers.arpVerifyIntegrity = function (args, context) {
     var deviceFingerprint = arpString(args, "deviceFingerprint", 128);
     var installSource = arpString(args, "installSource", 128);
     var apkLibraries = arpStringArray(args, "apkLibraries", 128, 128);
+    var loadedLibraries = arpStringArray(args, "loadedLibraries", 128, 128);
+    var disguisedPaths = arpStringArray(args, "disguisedLibraryPaths", 32, 256);
     var clientChecks = arpStringArray(args, "triggeredChecks", 64, 128);
     var inconclusive = arpStringArray(args, "inconclusiveChecks", 64, 128);
 
@@ -101,13 +103,44 @@ handlers.arpVerifyIntegrity = function (args, context) {
                  "Update it from Unity: Tools > ARP > Show Last Build Checksums.");
     }
 
-    if (arpLibrariesConfigured()) {
-        for (var l = 0; l < apkLibraries.length; l++) {
-            if (arpContains(ARP_EXPECTED_LIBRARIES, apkLibraries[l])) continue;
+    if (disguisedPaths.length > 0) {
+        // Android loads native libraries from lib/ and nowhere else, so a .so parked
+        // anywhere else in the APK has no legitimate reason to exist. Renaming the
+        // folder is aimed at checks that look up a path by name.
+        hardSignals.push("app:disguised_lib_folder");
+        log.info("ARP: native libraries outside lib/: " + disguisedPaths.join(", "));
+    }
 
-            hardSignals.push("app:unexpected_native_library");
-            log.info("ARP: library not in this build: " + apkLibraries[l]);
-            break;
+    if (arpLibrariesConfigured()) {
+        // Compare against what is actually mapped into the process where we can. That
+        // view does not care what the APK folder was renamed to, what the file was
+        // renamed to, or whether the library was ever in the APK - all of which are
+        // published ways around a name-based check.
+        var reported = loadedLibraries.length > 0 ? loadedLibraries : apkLibraries;
+
+        if (reported.length === 0) {
+            // Silence is not a pass. An empty list is what a renamed lib/ folder
+            // produces, and it used to sail through the loop below without a signal.
+            hardSignals.push("app:libraries_missing");
+            log.info("ARP: client reported no libraries at all.");
+        } else {
+            for (var l = 0; l < reported.length; l++) {
+                if (arpContains(ARP_EXPECTED_LIBRARIES, reported[l])) continue;
+
+                hardSignals.push("app:unexpected_native_library");
+                log.info("ARP: library not in this build: " + reported[l]);
+                break;
+            }
+
+            // The other direction. Everything the build shipped has to still be there;
+            // a library going missing means the layout was rearranged under us.
+            for (var x = 0; x < ARP_EXPECTED_LIBRARIES.length; x++) {
+                if (arpContains(reported, ARP_EXPECTED_LIBRARIES[x])) continue;
+
+                hardSignals.push("app:libraries_missing");
+                log.info("ARP: expected library absent: " + ARP_EXPECTED_LIBRARIES[x]);
+                break;
+            }
         }
     } else {
         log.info("ARP: ARP_EXPECTED_LIBRARIES is unset - library check skipped.");

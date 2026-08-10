@@ -66,6 +66,20 @@ namespace ARP
                  "Requires the native library.")]
         [SerializeField] private bool memoryIntegrityEnabled = true;
 
+        [Tooltip("Shut the app down locally if a native library is found outside lib/.\n\n" +
+                 "Android loads natives from lib/ and nowhere else, so this is a strong " +
+                 "signal - but the shutdown is cosmetic. Anyone who rearranged the APK can " +
+                 "delete this code in the same sitting, and the server has already been " +
+                 "told regardless.\n\n" +
+                 "Off by default because a false positive here is an instant close for a " +
+                 "real player, and because manufactured shutdowns pollute your own crash " +
+                 "and retention numbers.")]
+        [SerializeField] private bool lockOutOnDisguisedLibFolder = false;
+
+        [Tooltip("Logged when the lockout fires. Yours to change.")]
+        [SerializeField] private string disguisedLibFolderMessage =
+            "Turn off your headset, the person that appears in the lenses is a clown.";
+
         [Header("Ban policy")]
         [SerializeField] private ARPBanMode banMode = ARPBanMode.Permanent;
         [SerializeField] private float timedDuration = 3f;
@@ -197,6 +211,17 @@ namespace ARP
             if (memoryIntegrityEnabled && ARPMemoryIntegrity.QuickCheck(report.Signals))
             {
                 yield return ARPMemoryIntegrity.DeepVerify(report.Signals);
+            }
+
+            // Reported first, then locked out. The server has to hear about it even if
+            // the app is about to close, because the report is the part that matters.
+            if (lockOutOnDisguisedLibFolder &&
+                report.Signals.TriggeredChecks.Contains(ARPCheckIds.AppDisguisedLibFolder))
+            {
+                yield return SubmitReport(report);
+                Debug.LogError("[ARP] " + disguisedLibFolderMessage);
+                Application.Quit();
+                yield break;
             }
 
             _report = report;

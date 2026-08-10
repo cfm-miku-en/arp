@@ -7,6 +7,7 @@ using UnityEngine;
 namespace ARP.Editor
 {
     [CustomEditor(typeof(ARPManager))]
+    [CanEditMultipleObjects]
     public sealed class ARPManagerEditor : UnityEditor.Editor
     {
         private const string CoreGameRecommendation =
@@ -24,6 +25,8 @@ namespace ARP.Editor
         private SerializedProperty _quickScanInterval;
         private SerializedProperty _fullScanInterval;
         private SerializedProperty _memoryIntegrityEnabled;
+        private SerializedProperty _lockOutOnDisguisedLibFolder;
+        private SerializedProperty _disguisedLibFolderMessage;
 
         private SerializedProperty _banMode;
         private SerializedProperty _timedDuration;
@@ -62,6 +65,8 @@ namespace ARP.Editor
             _quickScanInterval = serializedObject.FindProperty("quickScanInterval");
             _fullScanInterval = serializedObject.FindProperty("fullScanInterval");
             _memoryIntegrityEnabled = serializedObject.FindProperty("memoryIntegrityEnabled");
+            _lockOutOnDisguisedLibFolder = serializedObject.FindProperty("lockOutOnDisguisedLibFolder");
+            _disguisedLibFolderMessage = serializedObject.FindProperty("disguisedLibFolderMessage");
 
             _banMode = serializedObject.FindProperty("banMode");
             _timedDuration = serializedObject.FindProperty("timedDuration");
@@ -127,7 +132,7 @@ namespace ARP.Editor
         {
             Section("Attestation (Meta)");
 
-            EditorGUILayout.PropertyField(_attestationEnabled, new GUIContent("Attestation Enabled"));
+            Field(_attestationEnabled, "Attestation Enabled");
 
             if (!_attestationEnabled.boolValue)
             {
@@ -149,8 +154,8 @@ namespace ARP.Editor
                     MessageType.Error);
             }
 
-            EditorGUILayout.PropertyField(_distribution, new GUIContent("Distribution"));
-            EditorGUILayout.PropertyField(_deviceIntegrityThreshold, new GUIContent("Device Integrity Threshold"));
+            Field(_distribution, "Distribution");
+            Field(_deviceIntegrityThreshold, "Device Integrity Threshold");
 
             if (_deviceIntegrityThreshold.enumValueIndex == (int)ARPDeviceIntegrityThreshold.BasicOrWorse)
             {
@@ -168,20 +173,37 @@ namespace ARP.Editor
         {
             Section("Local checks");
 
-            EditorGUILayout.PropertyField(_appIntegrityChecksEnabled, new GUIContent("App Integrity Checks"));
-            EditorGUILayout.PropertyField(_deviceChecksEnabled, new GUIContent("Device Checks"));
-            EditorGUILayout.PropertyField(_scanDelaySeconds, new GUIContent("Scan Delay (seconds)"));
+            Field(_appIntegrityChecksEnabled, "App Integrity Checks");
+            Field(_deviceChecksEnabled, "Device Checks");
+            Field(_scanDelaySeconds, "Scan Delay (seconds)");
+
+            GUILayout.Space(6);
+            Field(_lockOutOnDisguisedLibFolder, "Lock Out On Disguised Lib Folder");
+
+            if (_lockOutOnDisguisedLibFolder.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                Field(_disguisedLibFolderMessage, "Lockout Log Message");
+                EditorGUI.indentLevel--;
+
+                EditorGUILayout.HelpBox(
+                    "The detection is solid - Android loads natives from lib/ and nowhere " +
+                    "else. The shutdown is not: whoever rearranged the APK can remove this " +
+                    "code just as easily, so it stops nobody who matters.\n\n" +
+                    "The server is told either way, and that is the part that holds.",
+                    MessageType.Warning);
+            }
 
             DrawAddressablesRecommendation();
 
             GUILayout.Space(6);
-            EditorGUILayout.PropertyField(_continuousMonitoring, new GUIContent("Continuous Monitoring"));
+            Field(_continuousMonitoring, "Continuous Monitoring");
 
             if (_continuousMonitoring.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_quickScanInterval, new GUIContent("Quick Scan (seconds)"));
-                EditorGUILayout.PropertyField(_fullScanInterval, new GUIContent("Full Scan (seconds)"));
+                Field(_quickScanInterval, "Quick Scan (seconds)");
+                Field(_fullScanInterval, "Full Scan (seconds)");
                 EditorGUI.indentLevel--;
 
                 if (_fullScanInterval.floatValue < _quickScanInterval.floatValue)
@@ -203,7 +225,7 @@ namespace ARP.Editor
             }
 
             GUILayout.Space(6);
-            EditorGUILayout.PropertyField(_memoryIntegrityEnabled, new GUIContent("Memory Integrity"));
+            Field(_memoryIntegrityEnabled, "Memory Integrity");
 
             if (_memoryIntegrityEnabled.boolValue)
             {
@@ -248,16 +270,16 @@ namespace ARP.Editor
         {
             Section("Ban policy");
 
-            EditorGUILayout.PropertyField(_banMode, new GUIContent("Ban Mode"));
+            Field(_banMode, "Ban Mode");
 
             if (_banMode.enumValueIndex == (int)ARPBanMode.Timed)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_timedDuration, new GUIContent("Duration"));
-                EditorGUILayout.PropertyField(_timedUnit, new GUIContent("Unit"));
+                Field(_timedDuration, "Duration");
+                Field(_timedUnit, "Unit");
                 EditorGUI.indentLevel--;
 
-                EditorGUILayout.PropertyField(_timedMessageTemplate, new GUIContent("Timed Message"));
+                Field(_timedMessageTemplate, "Timed Message");
 
                 var preview = ARPDurationFormatter.Apply(
                     _timedMessageTemplate.stringValue,
@@ -268,10 +290,10 @@ namespace ARP.Editor
             }
             else
             {
-                EditorGUILayout.PropertyField(_permanentMessage, new GUIContent("Permanent Message"));
+                Field(_permanentMessage, "Permanent Message");
             }
 
-            EditorGUILayout.PropertyField(_internalBanReason, new GUIContent("Internal Reason"));
+            Field(_internalBanReason, "Internal Reason");
 
             var reasonLength = (_internalBanReason.stringValue ?? string.Empty).Length;
             if (reasonLength > 140)
@@ -295,9 +317,9 @@ namespace ARP.Editor
                 EditorStyles.wordWrappedMiniLabel);
             GUILayout.Space(4);
 
-            EditorGUILayout.PropertyField(_banAccount, new GUIContent("Ban Account"));
-            EditorGUILayout.PropertyField(_banIpAddress, new GUIContent("Ban IP Address"));
-            EditorGUILayout.PropertyField(_banHardware, new GUIContent("Ban Hardware"));
+            Field(_banAccount, "Ban Account");
+            Field(_banIpAddress, "Ban IP Address");
+            Field(_banHardware, "Ban Hardware");
 
             if (!_banAccount.boolValue && !_banIpAddress.boolValue && !_banHardware.boolValue)
             {
@@ -339,7 +361,7 @@ namespace ARP.Editor
             }
 
             GUILayout.Space(4);
-            EditorGUILayout.PropertyField(_enforcementMode, new GUIContent("Enforcement Mode"));
+            Field(_enforcementMode, "Enforcement Mode");
 
             if (_enforcementMode.enumValueIndex == (int)ARPEnforcementMode.AutoBan)
             {
@@ -359,13 +381,13 @@ namespace ARP.Editor
         {
             Section("Heartbeat");
 
-            EditorGUILayout.PropertyField(_heartbeatEnabled, new GUIContent("Heartbeat Enabled"));
+            Field(_heartbeatEnabled, "Heartbeat Enabled");
 
             if (_heartbeatEnabled.boolValue)
             {
-                EditorGUILayout.PropertyField(_heartbeatInterval, new GUIContent("Interval (seconds)"));
-                EditorGUILayout.PropertyField(_heartbeatRetries, new GUIContent("Retries"));
-                EditorGUILayout.PropertyField(_heartbeatRetryBackoff, new GUIContent("Retry Backoff"));
+                Field(_heartbeatInterval, "Interval (seconds)");
+                Field(_heartbeatRetries, "Retries");
+                Field(_heartbeatRetryBackoff, "Retry Backoff");
 
                 EditorGUILayout.HelpBox(
                     "When retries run out ARP fails closed and raises OnHeartbeatFailed. Your " +
@@ -396,6 +418,16 @@ namespace ARP.Editor
             EditorGUILayout.PropertyField(_onIntegrityCheckFailed);
 
             EndSection();
+        }
+
+        // Unity attaches the [Tooltip] automatically only when it builds the label
+        // itself. Passing a bare `new GUIContent("Label")` silently replaced the whole
+        // label, tooltip included - which is how every tooltip on this component went
+        // missing. SerializedProperty.tooltip carries the attribute text, so put it back.
+        private static void Field(SerializedProperty property, string label)
+        {
+            EditorGUILayout.PropertyField(
+                property, new GUIContent(label, property.tooltip), true);
         }
 
         private static void Section(string title)

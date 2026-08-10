@@ -41,6 +41,8 @@ namespace ARP
                 { "buildContentHash", report.BuildContentHash },
                 { "installSource", report.InstallSourcePackage },
                 { "apkLibraries", report.ApkLibraries },
+                { "loadedLibraries", report.LoadedLibraries },
+                { "disguisedLibraryPaths", report.DisguisedLibraryPaths },
                 { "deviceFingerprint", report.DeviceFingerprint },
                 { "triggeredChecks", report.Signals.TriggeredChecks },
                 { "inconclusiveChecks", report.Signals.InconclusiveChecks },
