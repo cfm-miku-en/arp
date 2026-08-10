@@ -1,0 +1,25 @@
+{
+  "name": "ARP.Runtime",
+  "rootNamespace": "ARP",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    {
+      "name": "com.meta.xr.sdk.platform",
+      "expression": "",
+      "define": "ARP_META_PLATFORM"
+    },
+    {
+      "name": "com.playfab.unitysdk",
+      "expression": "",
+      "define": "ARP_PLAYFAB"
+    }
+  ],
+  "noEngineReferences": false
+}
