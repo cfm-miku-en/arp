@@ -62,7 +62,7 @@ namespace ARP
             if (manager == null)
             {
 #if UNITY_2023_1_OR_NEWER
-                manager = FindFirstObjectByType<ARPManager>();
+                manager = FindAnyObjectByType<ARPManager>();
 #else
                 manager = FindObjectOfType<ARPManager>();
 #endif

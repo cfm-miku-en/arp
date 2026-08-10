@@ -405,12 +405,11 @@ namespace ARP.Editor
 
         private static bool IsDefineSet(string define)
         {
-            var group = BuildTargetGroup.Android;
 #if UNITY_2021_2_OR_NEWER
             var target = UnityEditor.Build.NamedBuildTarget.Android;
             var defines = PlayerSettings.GetScriptingDefineSymbols(target);
 #else
-            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(group);
+            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android);
 #endif
             return defines != null && defines.Split(';').Length > 0 &&
                    Array.IndexOf(defines.Split(';'), define) >= 0;

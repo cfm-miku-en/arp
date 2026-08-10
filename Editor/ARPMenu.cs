@@ -12,7 +12,11 @@ namespace ARP.Editor
         [MenuItem("Tools/ARP/Add ARP Manager to Scene", false, 40)]
         public static void AddManagerToScene()
         {
+#if UNITY_2023_1_OR_NEWER
+            var existing = Object.FindAnyObjectByType<ARPManager>();
+#else
             var existing = Object.FindObjectOfType<ARPManager>();
+#endif
             if (existing != null)
             {
                 EditorGUIUtility.PingObject(existing.gameObject);
