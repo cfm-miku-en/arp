@@ -34,10 +34,9 @@ namespace ARP
             if (entryName.StartsWith("lib/", StringComparison.Ordinal)) return true;
             if (entryName.Equals("AndroidManifest.xml", StringComparison.Ordinal)) return true;
 
-            // The whole Unity data directory, not just code. Most on-device Quest modding
-            // goes through UABEA, which edits resources.assets, sharedassets*, level* and
-            // data.unity3d - none of which are code, all of which change the game. A
-            // filter tuned only for mod loaders calls that clean.
+            // The whole Unity data directory, not just code. A large share of Quest
+            // modding alters the game's serialized data rather than its code, and a
+            // filter aimed only at libraries and dex calls that clean.
             //
             // Cheap despite the breadth: this directory is a few dozen entries even on a
             // large title, and only names, sizes and stored CRCs are read.

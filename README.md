@@ -27,9 +27,9 @@ The attestation token is signed by Meta's server, so it cannot be forged. It can
 still be bypassed: a client can omit it (ARP now treats that as a signal), or relay
 a nonce to a clean device and pass back a genuine token. Treat it as much harder
 and more expensive to defeat, not impossible. The other two layers
-raise the cost from "run QuestPatcher" to "run QuestPatcher, then find and patch
-ARP inside libil2cpp.so" - a real bar for the population that actually cheats on
-Quest, and no bar at all for someone determined.
+raise the cost from "repack the APK" to "repack the APK, then find and patch ARP
+inside it" - a real bar for the population that actually cheats on Quest, and no
+bar at all for someone determined.
 
 ## Package visibility - handled for you
 

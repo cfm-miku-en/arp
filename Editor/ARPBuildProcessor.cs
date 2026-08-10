@@ -86,9 +86,9 @@ namespace ARP.Editor
                 var entries = ARPZipCentralDirectory.Read(outputPath);
 
                 // The libraries this build actually ships. Sent to CloudScript as the
-                // reference set, because the APK cannot vouch for itself: a cheat .so
-                // dropped into lib/ becomes part of the APK, so anything derived from the
-                // APK at runtime already contains it.
+                // reference set, because the APK cannot vouch for itself: an added library
+                // becomes part of the APK, so anything derived from the APK at runtime
+                // already contains it and would call it expected.
                 foreach (var entry in entries)
                 {
                     if (!entry.Name.StartsWith("lib/", StringComparison.Ordinal)) continue;

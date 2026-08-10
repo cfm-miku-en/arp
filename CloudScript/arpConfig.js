@@ -8,9 +8,9 @@
 var ARP_EXPECTED_SIGNING_CERT_SHA256 = "PASTE_SIGNING_CERT_SHA256_HERE";
 var ARP_EXPECTED_CONTENT_HASH = "PASTE_BUILD_CONTENT_HASH_HERE";
 
-// Native libraries your build ships, from the same window. Most Quest cheats are an
-// extra .so dropped into lib/ plus a re-sign, with no mod loader involved, so this
-// catches the common case directly. Empty array = check skipped.
+// Native libraries your build ships, from the same window. Most Quest cheats add a
+// library the build never contained, with no mod loader involved, so this catches the
+// common case where a loader-artifact scan would not. Empty array = check skipped.
 var ARP_EXPECTED_LIBRARIES = [];
 
 // Package that should have installed your app.

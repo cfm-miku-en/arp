@@ -235,8 +235,8 @@ namespace ARP.Editor
                 "attacker controls, which means all of it can be patched out. The checksums, " +
                 "every root check, the mod-loader scan - a modder who finds the comparison inside " +
                 "libil2cpp.so can send back whatever ARP expects to see.\n\n" +
-                "What that buys you is cost. The job goes from \"run QuestPatcher\" to \"run " +
-                "QuestPatcher, then locate and patch ARP\". That is a real barrier for the " +
+                "What that buys you is cost. The job goes from \"repack the APK\" to \"repack " +
+                "the APK, then locate and patch ARP inside it\". That is a real barrier for the " +
                 "population that actually cheats on Quest, and no barrier at all for someone " +
                 "determined.\n\n" +
                 "The attestation token is different because Meta's server signs it, so it cannot " +

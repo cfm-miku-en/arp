@@ -81,8 +81,9 @@ namespace ARP.Editor
             GUILayout.Space(10);
             DrawHashBlock(
                 "Native libraries in this build (" + (_record.ExpectedLibraries?.Count ?? 0) + ")",
-                "The reference set for detecting an added cheat library. Most Quest mods are " +
-                "just an extra .so dropped into lib/ and a re-sign - no mod loader involved.",
+                "The reference set for detecting an added cheat library. Most Quest mods add " +
+                "a native library the build never shipped, with no mod loader involved, so " +
+                "this catches the common case where a loader-artifact scan would not.",
                 _record.LibrariesJsArray(),
                 "ARP_EXPECTED_LIBRARIES");
 
