@@ -172,6 +172,8 @@ namespace ARP.Editor
             EditorGUILayout.PropertyField(_deviceChecksEnabled, new GUIContent("Device Checks"));
             EditorGUILayout.PropertyField(_scanDelaySeconds, new GUIContent("Scan Delay (seconds)"));
 
+            DrawAddressablesRecommendation();
+
             GUILayout.Space(6);
             EditorGUILayout.PropertyField(_continuousMonitoring, new GUIContent("Continuous Monitoring"));
 
@@ -215,6 +217,31 @@ namespace ARP.Editor
             }
 
             EndSection();
+        }
+
+        // Hidden once Addressables is in the project, via the ARP_ADDRESSABLES version
+        // define on this assembly. Advice a dev has already taken is just noise.
+        private static void DrawAddressablesRecommendation()
+        {
+#if !ARP_ADDRESSABLES
+            GUILayout.Space(6);
+            EditorGUILayout.HelpBox(
+                "We would recommend installing Addressables and setting it up with a custom " +
+                "configuration to defend against UABEA.\n\n" +
+                "Addressables on its own does not help - bundles are what that tool reads " +
+                "best. The protection comes from pairing it with a custom AssetBundleProvider " +
+                "that decrypts the stream before Unity loads it.\n\n" +
+                "Note the decryption key ships inside your client, so this raises the cost of " +
+                "pulling your assets apart rather than preventing it. It also does not cover " +
+                "your code or IL2CPP metadata.",
+                MessageType.Info);
+
+            if (GUILayout.Button("Addressables documentation", GUILayout.Width(240)))
+            {
+                Application.OpenURL(
+                    "https://docs.unity3d.com/Packages/com.unity.addressables@latest");
+            }
+#endif
         }
 
         private void DrawBanPolicy()
