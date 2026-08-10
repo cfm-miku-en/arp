@@ -176,6 +176,19 @@ adb shell getprop ro.product.cpu.abi
 Should be `arm64-v8a`. If you built for a different ABI the library is present
 but unloadable.
 
+**`Failed to run MSBuild command ... VCTargetsPath`**
+
+CMake picked the Visual Studio generator, which cannot cross-compile for Android. The
+build scripts pass `-G Ninja` and locate Ninja inside Unity's Android module to avoid
+this. If you invoke CMake yourself, you must do the same.
+
+**`Compatibility with CMake < 3.10` deprecation warnings**
+
+Your system CMake is newer than the NDK toolchain expects. Harmless as warnings, but
+CMake 4.x can escalate them to errors. The scripts prefer Unity's bundled CMake at
+`<AndroidPlayer>/SDK/cmake/<version>/bin/`, which is pinned to a tested version.
+Override with `-CMakePath` (PowerShell) or `CMAKE_BIN` (shell).
+
 **`android.toolchain.cmake` not found**
 
 You pointed at the wrong directory. The NDK root is the folder *containing*

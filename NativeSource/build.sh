@@ -29,16 +29,50 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build/arm64-v8a"
 
+# Unity keeps CMake and Ninja beside the NDK under SDK/cmake/<version>/bin.
+#
+# Both matter. The default generator cannot cross-compile for Android - on Windows it
+# picks Visual Studio and dies probing VCTargetsPath - so a single-config generator is
+# required, and Ninja is the one Unity ships. Unity's CMake is also pinned to a
+# version the NDK toolchain is tested against, which avoids the deprecation errors
+# newer CMake raises against it.
+ANDROID_PLAYER="$(dirname "$NDK_PATH")"
+find_unity_tool() {
+    find "$ANDROID_PLAYER/SDK/cmake" -name "$1" -type f 2>/dev/null | head -1
+}
+
+CMAKE_BIN="${CMAKE_BIN:-$(find_unity_tool cmake)}"
+[ -z "$CMAKE_BIN" ] && CMAKE_BIN="$(command -v cmake || true)"
+if [ -z "$CMAKE_BIN" ]; then
+    echo "error: cmake not found. Set CMAKE_BIN, or install CMake." >&2
+    exit 1
+fi
+
+NINJA_BIN="${NINJA_BIN:-$(find_unity_tool ninja)}"
+[ -z "$NINJA_BIN" ] && NINJA_BIN="$(command -v ninja || true)"
+if [ -z "$NINJA_BIN" ]; then
+    echo "error: ninja not found. It ships with Unity's Android module at" >&2
+    echo "  <Editor>/.../AndroidPlayer/SDK/cmake/<version>/bin/ninja" >&2
+    echo "Set NINJA_BIN, or install Ninja." >&2
+    exit 1
+fi
+
+echo "CMake : $CMAKE_BIN"
+echo "Ninja : $NINJA_BIN"
+echo
+
 # Quest is arm64-v8a only, so there is exactly one ABI to build.
 echo "Configuring (arm64-v8a, $ANDROID_PLATFORM)..."
-cmake -S "$SCRIPT_DIR" -B "$BUILD_DIR" \
+"$CMAKE_BIN" -S "$SCRIPT_DIR" -B "$BUILD_DIR" \
+    -G Ninja \
+    -DCMAKE_MAKE_PROGRAM="$NINJA_BIN" \
     -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" \
     -DANDROID_ABI=arm64-v8a \
     -DANDROID_PLATFORM="$ANDROID_PLATFORM" \
     -DCMAKE_BUILD_TYPE=MinSizeRel
 
 echo "Building..."
-cmake --build "$BUILD_DIR"
+"$CMAKE_BIN" --build "$BUILD_DIR"
 
 BUILT="$BUILD_DIR/libarpnative.so"
 if [ ! -f "$BUILT" ]; then
