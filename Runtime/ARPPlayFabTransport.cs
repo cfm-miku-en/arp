@@ -40,6 +40,7 @@ namespace ARP
                 { "signingCertSha256", report.SigningCertSha256 },
                 { "buildContentHash", report.BuildContentHash },
                 { "installSource", report.InstallSourcePackage },
+                { "apkLibraries", report.ApkLibraries },
                 { "deviceFingerprint", report.DeviceFingerprint },
                 { "triggeredChecks", report.Signals.TriggeredChecks },
                 { "inconclusiveChecks", report.Signals.InconclusiveChecks },

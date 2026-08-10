@@ -15,6 +15,8 @@ handlers.arpVerifyIntegrity = function (args, context) {
     var signingCert = arpString(args, "signingCertSha256", 128);
     var contentHash = arpString(args, "buildContentHash", 128);
     var deviceFingerprint = arpString(args, "deviceFingerprint", 128);
+    var installSource = arpString(args, "installSource", 128);
+    var apkLibraries = arpStringArray(args, "apkLibraries", 128, 128);
     var clientChecks = arpStringArray(args, "triggeredChecks", 64, 128);
     var inconclusive = arpStringArray(args, "inconclusiveChecks", 64, 128);
 
@@ -97,6 +99,28 @@ handlers.arpVerifyIntegrity = function (args, context) {
     } else {
         log.info("ARP: ARP_EXPECTED_CONTENT_HASH is unset - content hash check skipped. " +
                  "Update it from Unity: Tools > ARP > Show Last Build Checksums.");
+    }
+
+    if (arpLibrariesConfigured()) {
+        for (var l = 0; l < apkLibraries.length; l++) {
+            if (arpContains(ARP_EXPECTED_LIBRARIES, apkLibraries[l])) continue;
+
+            hardSignals.push("app:unexpected_native_library");
+            log.info("ARP: library not in this build: " + apkLibraries[l]);
+            break;
+        }
+    } else {
+        log.info("ARP: ARP_EXPECTED_LIBRARIES is unset - library check skipped.");
+    }
+
+    // Only meaningful when the distribution channel is controlled. A sideloaded or
+    // itch.io build can legitimately be installed by any file manager on the headset,
+    // so the installing package carries no signal at all there.
+    if (policy.distribution === "MetaStoreOrAppLab" &&
+        ARP_EXPECTED_INSTALLER.length > 0 && installSource &&
+        installSource !== ARP_EXPECTED_INSTALLER) {
+        softSignals.push("app:unexpected_install_source");
+        log.info("ARP: installed by " + installSource + ", expected " + ARP_EXPECTED_INSTALLER);
     }
 
     var allSignals = hardSignals.concat(softSignals);

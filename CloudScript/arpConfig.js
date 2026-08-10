@@ -8,6 +8,22 @@
 var ARP_EXPECTED_SIGNING_CERT_SHA256 = "PASTE_SIGNING_CERT_SHA256_HERE";
 var ARP_EXPECTED_CONTENT_HASH = "PASTE_BUILD_CONTENT_HASH_HERE";
 
+// Native libraries your build ships, from the same window. Most Quest cheats are an
+// extra .so dropped into lib/ plus a re-sign, with no mod loader involved, so this
+// catches the common case directly. Empty array = check skipped.
+var ARP_EXPECTED_LIBRARIES = [];
+
+// Package that should have installed your app.
+//
+// ONLY APPLIES TO STORE / APP LAB BUILDS. Sideloaded and itch.io distribution can be
+// installed by any file manager on the headset, so the installing package carries no
+// signal there and the check is skipped regardless of what you put here.
+//
+// Leave blank until you have seen the real value on a store install - guessing it
+// flags every legitimate player at once. The client reports what it sees either way,
+// so read it off a PlayStream event first.
+var ARP_EXPECTED_INSTALLER = "";
+
 var ARP_META_APP_ID = "";
 var ARP_META_APP_SECRET = "";
 
@@ -39,6 +55,18 @@ function arpCertConfigured() {
 
 function arpContentHashConfigured() {
     return arpIsConfigured(ARP_EXPECTED_CONTENT_HASH, "PASTE_BUILD_CONTENT_HASH_HERE");
+}
+
+function arpLibrariesConfigured() {
+    return Object.prototype.toString.call(ARP_EXPECTED_LIBRARIES) === "[object Array]" &&
+           ARP_EXPECTED_LIBRARIES.length > 0;
+}
+
+function arpContains(list, value) {
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] === value) return true;
+    }
+    return false;
 }
 
 function arpAttestationConfigured() {

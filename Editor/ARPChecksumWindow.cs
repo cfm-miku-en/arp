@@ -57,7 +57,9 @@ namespace ARP.Editor
             EditorGUILayout.LabelField("PUT THIS CHECKSUM IN THE SCRIPT:", EditorStyles.boldLabel);
             GUILayout.Space(8);
 
+            if (ARPPluginWatcher.LibrariesStale) DrawStaleLibrariesWarning();
             if (_record.CertificateChanged) DrawCertificateChangedWarning();
+            if (_record.LibrariesChanged) DrawLibrariesChangedWarning();
 
             DrawHashBlock(
                 "Build content hash",
@@ -76,12 +78,53 @@ namespace ARP.Editor
 
             if (!_record.HasCertificate) DrawKeytoolFallback();
 
+            GUILayout.Space(10);
+            DrawHashBlock(
+                "Native libraries in this build (" + (_record.ExpectedLibraries?.Count ?? 0) + ")",
+                "The reference set for detecting an added cheat library. Most Quest mods are " +
+                "just an extra .so dropped into lib/ and a re-sign - no mod loader involved.",
+                _record.LibrariesJsArray(),
+                "ARP_EXPECTED_LIBRARIES");
+
             GUILayout.Space(14);
             DrawSnippetBlock();
             GUILayout.Space(14);
             DrawBuildInfo();
 
             EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawStaleLibrariesWarning()
+        {
+            EditorGUILayout.HelpBox(
+                "Native plugins changed since this build.
+
+" +
+                ARPPluginWatcher.StaleDetail + "
+
+" +
+                "These values are from the previous build and do not reflect that. Rebuild " +
+                "before pasting anything, or you will be pasting a list that flags your own " +
+                "players.",
+                MessageType.Error);
+            GUILayout.Space(8);
+        }
+
+        private void DrawLibrariesChangedWarning()
+        {
+            var added = _record.AddedLibraries();
+
+            EditorGUILayout.HelpBox(
+                "The native library set changed since your last build.
+
+" +
+                (added.Count > 0 ? "New: " + string.Join(", ", added) + "
+
+" : string.Empty) +
+                "Repaste ARP_EXPECTED_LIBRARIES into arpConfig.js. Until you do, every " +
+                "legitimate player carrying the new library will be flagged as tampered.",
+                MessageType.Warning);
+            GUILayout.Space(8);
         }
 
         private void DrawCertificateChangedWarning()

@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using ARP;
@@ -35,12 +36,16 @@ namespace ARP.Editor
                 ProductName = PlayerSettings.productName,
                 BuiltAtUtc = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
                 PreviousSigningCertSha256 = previous?.SigningCertSha256,
+                PreviousLibraries = previous?.ExpectedLibraries ?? new List<string>(),
             };
 
-            record.BuildContentHash = ComputeContentHash(outputPath);
+            record.BuildContentHash = ComputeContentHash(outputPath, record);
             record.SigningCertSha256 = ComputeCertificateHash(out var note);
             record.CertificateNote = note;
             record.Save();
+
+            // The build regenerated the list, so whatever the watcher saw is now reflected.
+            ARPPluginWatcher.ClearStale();
 
             Debug.LogWarning(
                 "[ARP] UPDATE YOUR CLOUDSCRIPT BEFORE PUBLISHING.\n" +
@@ -50,7 +55,7 @@ namespace ARP.Editor
             ARPChecksumWindow.Show(record);
         }
 
-        private static string ComputeContentHash(string outputPath)
+        private static string ComputeContentHash(string outputPath, ARPChecksumRecord record)
         {
             if (string.IsNullOrEmpty(outputPath)) return null;
 
@@ -79,6 +84,24 @@ namespace ARP.Editor
             try
             {
                 var entries = ARPZipCentralDirectory.Read(outputPath);
+
+                // The libraries this build actually ships. Sent to CloudScript as the
+                // reference set, because the APK cannot vouch for itself: a cheat .so
+                // dropped into lib/ becomes part of the APK, so anything derived from the
+                // APK at runtime already contains it.
+                foreach (var entry in entries)
+                {
+                    if (!entry.Name.StartsWith("lib/", StringComparison.Ordinal)) continue;
+
+                    var slash = entry.Name.LastIndexOf('/');
+                    var fileName = slash >= 0 ? entry.Name.Substring(slash + 1) : entry.Name;
+                    if (fileName.EndsWith(".so", StringComparison.Ordinal) &&
+                        !record.ExpectedLibraries.Contains(fileName))
+                    {
+                        record.ExpectedLibraries.Add(fileName);
+                    }
+                }
+
                 if (entries.Count == 0)
                 {
                     Debug.LogWarning("[ARP] No hashable entries found in the APK.");

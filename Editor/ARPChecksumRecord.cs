@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -17,11 +18,41 @@ namespace ARP.Editor
         public string ProductName;
         public string BuiltAtUtc;
         public string CertificateNote;
+        public List<string> ExpectedLibraries = new List<string>();
+        public List<string> PreviousLibraries = new List<string>();
 
         public bool CertificateChanged =>
             !string.IsNullOrEmpty(PreviousSigningCertSha256) &&
             !string.IsNullOrEmpty(SigningCertSha256) &&
             PreviousSigningCertSha256 != SigningCertSha256;
+
+        public bool LibrariesChanged
+        {
+            get
+            {
+                if (PreviousLibraries == null || PreviousLibraries.Count == 0) return false;
+                if (ExpectedLibraries == null) return true;
+                if (PreviousLibraries.Count != ExpectedLibraries.Count) return true;
+
+                foreach (var name in PreviousLibraries)
+                {
+                    if (!ExpectedLibraries.Contains(name)) return true;
+                }
+                return false;
+            }
+        }
+
+        public List<string> AddedLibraries()
+        {
+            var added = new List<string>();
+            if (ExpectedLibraries == null) return added;
+
+            foreach (var name in ExpectedLibraries)
+            {
+                if (PreviousLibraries == null || !PreviousLibraries.Contains(name)) added.Add(name);
+            }
+            return added;
+        }
 
         public bool HasCertificate => !string.IsNullOrEmpty(SigningCertSha256);
         public bool HasContentHash => !string.IsNullOrEmpty(BuildContentHash);

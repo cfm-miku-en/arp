@@ -51,6 +51,9 @@ namespace ARP
             CheckInstallSource(report, distribution);
             CheckModLoaderArtifacts(report.Signals);
             CheckLoadedLibraries(report.Signals);
+
+            report.ApkLibraries.Clear();
+            report.ApkLibraries.AddRange(ApkLibraryNames);
 #else
             report.Signals.Inconclusive("app:not_android");
 #endif

@@ -121,6 +121,7 @@ namespace ARP
         public string BuildContentHash;
         public string InstallSourcePackage;
         public string DeviceFingerprint;
+        public List<string> ApkLibraries = new List<string>();
 
         public readonly ARPScanResult Signals = new ARPScanResult();
     }
