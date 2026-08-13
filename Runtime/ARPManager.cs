@@ -80,6 +80,12 @@ namespace ARP
         [SerializeField] private string disguisedLibFolderMessage =
             "Turn off your headset, the person that appears in the lenses is a clown.";
 
+        [Tooltip("Survive scene loads, and destroy any duplicate that appears later.\n\n" +
+                 "Leave on for anything with more than one scene. Without it ARP dies on the " +
+                 "first load, the heartbeat stops, and the server reads that silence as a " +
+                 "killed watchdog.")]
+        [SerializeField] private bool persistAcrossScenes = true;
+
         [Header("Ban policy")]
         [SerializeField] private ARPBanMode banMode = ARPBanMode.Permanent;
         [SerializeField] private float timedDuration = 3f;
@@ -175,6 +181,33 @@ namespace ARP
         public static bool WasBanned => !string.IsNullOrEmpty(LastBanMessage);
 
         public void SetTransport(IARPTransport transport) => _transport = transport;
+
+        private static ARPManager _instance;
+
+        // A multi-scene game destroys this on the first load otherwise: the heartbeat
+        // stops, the server sees silence, and fail-closed kicks a legitimate player.
+        // Returning to an earlier scene would then spawn a second manager, doubling
+        // every report and running two heartbeats against one session.
+        private void Awake()
+        {
+            if (persistAcrossScenes)
+            {
+                if (_instance != null && _instance != this)
+                {
+                    Destroy(gameObject);
+                    return;
+                }
+
+                _instance = this;
+                transform.SetParent(null);
+                DontDestroyOnLoad(gameObject);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this) _instance = null;
+        }
 
         private void Start() => StartCoroutine(RunStartupCheck());
 

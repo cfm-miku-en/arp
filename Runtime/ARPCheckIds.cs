@@ -40,6 +40,7 @@ namespace ARP
         public const string BeatMissedThreshold = "beat:missed_threshold";
         public const string BeatSequenceRegression = "beat:sequence_regression";
         public const string BeatNoSessionEnd = "beat:no_session_end";
+        public const string BeatNeverReported = "beat:never_reported";
 
         public static ARPSignalTier TierOf(string checkId)
         {

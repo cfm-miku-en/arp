@@ -22,6 +22,14 @@ handlers.arpVerifyIntegrity = function (args, context) {
     var clientChecks = arpStringArray(args, "triggeredChecks", 64, 128);
     var inconclusive = arpStringArray(args, "inconclusiveChecks", 64, 128);
 
+    // Mark this login as having heard from ARP, whatever the verdict turns out to be.
+    // arpRecordLoginContext checks this on the next login.
+    var loginRecord = arpReadInternal(ARP_KEY_LOGIN_IP);
+    if (loginRecord && !loginRecord.reported) {
+        loginRecord.reported = true;
+        arpWriteInternal(ARP_KEY_LOGIN_IP, loginRecord);
+    }
+
     var policy = arpNormalizePolicy(args ? args.policy : null);
 
     var hardSignals = [];

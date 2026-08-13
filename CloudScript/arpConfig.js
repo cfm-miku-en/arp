@@ -34,6 +34,14 @@ var ARP_NONCE_TTL_SECONDS = 300;
 // unreadable, and treating unreadable as clean is how hiders win.
 var ARP_INCONCLUSIVE_THRESHOLD = 5;
 
+// How long after login ARP has to check in before its silence counts.
+//
+// This is the one check that survives ARP being deleted outright: every other check
+// lives inside the thing being removed, so a client that never runs it reports
+// nothing and looks identical to a player who never launched. Login is observed by
+// PlayFab rather than by us, so it cannot be patched out of the client.
+var ARP_REPORT_GRACE_SECONDS = 300;
+
 var ARP_HEARTBEAT_MISS_THRESHOLD = 4;
 
 var ARP_HEARTBEAT_GRACE_SECONDS = 600;
