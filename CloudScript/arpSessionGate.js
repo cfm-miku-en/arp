@@ -35,10 +35,18 @@ handlers.arpSessionGate = function (args, context) {
         return { ok: false, reason: "integrity never reported" };
     }
 
+    if (!ARP_GATE_ON_RECENT_FLAGS) return { ok: true };
+
     var flags = arpReadInternal(ARP_KEY_FLAGS);
     if (flags && flags.flags && flags.flags.length > 0) {
         var latest = flags.flags[flags.flags.length - 1];
-        return { ok: false, reason: "flagged", signals: latest.signals || [] };
+        var age = now - (latest.at || 0);
+
+        // Age matters. Flags are trimmed by count, never by time, so without this an
+        // entry from months ago refuses matchmaking forever with nothing to clear it.
+        if (age <= (ARP_GATE_FLAG_WINDOW_SECONDS * 1000)) {
+            return { ok: false, reason: "flagged", signals: latest.signals || [] };
+        }
     }
 
     return { ok: true };

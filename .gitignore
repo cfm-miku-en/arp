@@ -23,6 +23,11 @@ NativeSource/build/
 *.tgz
 *.tgz.meta
 
+# Third-party source dropped in for reference. Not ours to redistribute under
+# this repo's licence.
+*.zip
+*.zip.meta
+
 # Checksum output, written per-build in a consuming project
 ARP/
 last-build-checksums.json

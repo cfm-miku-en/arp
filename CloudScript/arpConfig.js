@@ -42,6 +42,19 @@ var ARP_INCONCLUSIVE_THRESHOLD = 5;
 // PlayFab rather than by us, so it cannot be patched out of the client.
 var ARP_REPORT_GRACE_SECONDS = 300;
 
+// Should arpSessionGate refuse public play to a player who has been flagged?
+//
+// Off, because FlagForReview means "record it, do not act", and a gate that refuses
+// matchmaking is acting. Turning this on makes FlagForReview a soft ban.
+//
+// It also used to be permanent by accident: flags are capped by count, not age, so
+// without the window below a single flag from months ago locked a player out for
+// good.
+var ARP_GATE_ON_RECENT_FLAGS = false;
+
+// How recent a flag has to be to matter to the gate, when the above is on.
+var ARP_GATE_FLAG_WINDOW_SECONDS = 3600;
+
 var ARP_HEARTBEAT_MISS_THRESHOLD = 4;
 
 var ARP_HEARTBEAT_GRACE_SECONDS = 600;

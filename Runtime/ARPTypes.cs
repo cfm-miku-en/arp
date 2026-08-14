@@ -81,6 +81,11 @@ namespace ARP
         DeviceRoot = 1,
 
         HeartbeatPattern = 2,
+
+        /// Tier 3. Observed over the wire by another player, not by us. The least
+        /// trustworthy input ARP takes: the witness runs the same forgeable client as
+        /// everyone else, so these corroborate a case and never decide one.
+        Network = 3,
     }
 
     public sealed class ARPScanResult

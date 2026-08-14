@@ -47,6 +47,7 @@ namespace ARP
             if (string.IsNullOrEmpty(checkId)) return ARPSignalTier.AppTamper;
             if (checkId.StartsWith("device:")) return ARPSignalTier.DeviceRoot;
             if (checkId.StartsWith("beat:")) return ARPSignalTier.HeartbeatPattern;
+            if (checkId.StartsWith("net:")) return ARPSignalTier.Network;
             return ARPSignalTier.AppTamper;
         }
     }

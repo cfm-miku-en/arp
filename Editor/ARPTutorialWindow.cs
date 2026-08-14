@@ -20,6 +20,8 @@ namespace ARP.Editor
             "banRootedDevice.js",
             "arpHeartbeat.js",
             "arpRecordLoginContext.js",
+            "arpSessionGate.js",
+            "arpWitnessReport.js",
         };
 
         private static readonly Dictionary<string, string> ScriptSummaries = new Dictionary<string, string>
@@ -29,7 +31,9 @@ namespace ARP.Editor
             { "arpVerifyIntegrity.js", "The decision point. Verifies the Meta token, compares checksums, decides." },
             { "banRootedDevice.js", "Applies the ban across account, IP and device targets." },
             { "arpHeartbeat.js", "Records the watchdog pulse and judges the silences." },
-            { "arpRecordLoginContext.js", "PlayStream action. Only needed if you want IP bans." },
+            { "arpRecordLoginContext.js", "PlayStream action on login. Needed for IP bans and for spotting a client that never reports at all." },
+            { "arpSessionGate.js", "Optional. Called from your own netcode so deleting ARP does not remove the check." },
+            { "arpWitnessReport.js", "Optional. Records one player's observation of another. Flags only, never bans." },
         };
 
         private Vector2 _scroll;
