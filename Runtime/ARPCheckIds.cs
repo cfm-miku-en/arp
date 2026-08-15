@@ -36,6 +36,9 @@ namespace ARP
         public const string DeviceRootPackageInstalled = "device:root_package_installed";
         public const string DeviceTestKeys = "device:test_keys";
         public const string DeviceVerificationObstructed = "device:verification_obstructed";
+        public const string DeviceDebuggerAttached = "device:debugger_attached";
+        public const string DeviceAnonymousExecMemory = "device:anonymous_exec_memory";
+        public const string DeviceFridaPortOpen = "device:frida_port_open";
 
         public const string BeatMissedThreshold = "beat:missed_threshold";
         public const string BeatSequenceRegression = "beat:sequence_regression";

@@ -25,6 +25,8 @@ namespace ARP.Editor
         private SerializedProperty _quickScanInterval;
         private SerializedProperty _fullScanInterval;
         private SerializedProperty _memoryIntegrityEnabled;
+        private SerializedProperty _instrumentationChecksEnabled;
+        private SerializedProperty _fridaPortProbeEnabled;
         private SerializedProperty _lockOutOnDisguisedLibFolder;
         private SerializedProperty _disguisedLibFolderMessage;
 
@@ -65,6 +67,8 @@ namespace ARP.Editor
             _quickScanInterval = serializedObject.FindProperty("quickScanInterval");
             _fullScanInterval = serializedObject.FindProperty("fullScanInterval");
             _memoryIntegrityEnabled = serializedObject.FindProperty("memoryIntegrityEnabled");
+            _instrumentationChecksEnabled = serializedObject.FindProperty("instrumentationChecksEnabled");
+            _fridaPortProbeEnabled = serializedObject.FindProperty("fridaPortProbeEnabled");
             _lockOutOnDisguisedLibFolder = serializedObject.FindProperty("lockOutOnDisguisedLibFolder");
             _disguisedLibFolderMessage = serializedObject.FindProperty("disguisedLibFolderMessage");
 
@@ -176,6 +180,28 @@ namespace ARP.Editor
             Field(_appIntegrityChecksEnabled, "App Integrity Checks");
             Field(_deviceChecksEnabled, "Device Checks");
             Field(_scanDelaySeconds, "Scan Delay (seconds)");
+
+            GUILayout.Space(6);
+            Field(_instrumentationChecksEnabled, "Instrumentation Checks");
+
+            if (_instrumentationChecksEnabled.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                Field(_fridaPortProbeEnabled, "Frida Port Probe (experimental)");
+                EditorGUI.indentLevel--;
+
+                if (_fridaPortProbeEnabled.boolValue)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Experimental. This is the only check in ARP that opens a socket - to " +
+                        "loopback only, completing Frida's handshake so a hit means " +
+                        "frida-server rather than merely an open port.\n\n" +
+                        "Nothing on a stock Quest binds those ports, so a confirmed hit is " +
+                        "close to conclusive there. Baseline it on your own devices before " +
+                        "letting it contribute to a ban.",
+                        MessageType.Info);
+                }
+            }
 
             GUILayout.Space(6);
             Field(_lockOutOnDisguisedLibFolder, "Lock Out On Disguised Lib Folder");

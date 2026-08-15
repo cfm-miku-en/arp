@@ -66,6 +66,20 @@ namespace ARP
                  "Requires the native library.")]
         [SerializeField] private bool memoryIntegrityEnabled = true;
 
+        [Tooltip("Look for a debugger or injected code: an attached tracer, and large " +
+                 "writable-executable memory that no file backs.\n\n" +
+                 "Both are behavioural rather than name-based, so they do not care which " +
+                 "tool is doing it. Requires the native library.")]
+        [SerializeField] private bool instrumentationChecksEnabled = true;
+
+        [Tooltip("EXPERIMENTAL. Also probe Frida's default ports on loopback and complete " +
+                 "its handshake, so a hit means frida-server specifically rather than " +
+                 "just an open port.\n\n" +
+                 "Off by default because it is the only check in ARP that opens a socket. " +
+                 "Nothing on a stock Quest binds those ports, so a confirmed hit is close " +
+                 "to conclusive there - but baseline it on your own devices first.")]
+        [SerializeField] private bool fridaPortProbeEnabled = false;
+
         [Tooltip("Shut the app down locally if a native library is found outside lib/.\n\n" +
                  "Android loads natives from lib/ and nowhere else, so this is a strong " +
                  "signal - but the shutdown is cosmetic. Anyone who rearranged the APK can " +
@@ -248,6 +262,12 @@ namespace ARP
                 foreach (var _ in ARPRootDetector.ScanIncremental(report.Signals)) yield return null;
             }
 
+            if (instrumentationChecksEnabled)
+            {
+                ARPInstrumentationDetector.ProbeFridaPorts = fridaPortProbeEnabled;
+                ARPInstrumentationDetector.Scan(report.Signals);
+            }
+
             if (memoryIntegrityEnabled && ARPMemoryIntegrity.QuickCheck(report.Signals))
             {
                 yield return ARPMemoryIntegrity.DeepVerify(report.Signals);
@@ -427,6 +447,7 @@ namespace ARP
                 }
 
                 if (appIntegrityChecksEnabled) ARPIntegrityChecker.ScanLoadedLibraries(pass);
+                if (instrumentationChecksEnabled) ARPInstrumentationDetector.Scan(pass);
 
                 if (memoryIntegrityEnabled && ARPMemoryIntegrity.QuickCheck(pass))
                 {

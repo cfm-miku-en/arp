@@ -211,7 +211,10 @@ namespace ARP.Editor
                 "root_package_installed       a root manager is installed\n" +
                 "test_keys                    custom ROM build tags (never fires on Quest)\n" +
                 "blocklisted_hardware         this device is on ARP's own blocklist\n" +
-                "verification_obstructed      too many checks could not be determined");
+                "verification_obstructed      too many checks could not be determined\n" +
+                "debugger_attached            a tracer is attached to the process\n" +
+                "anonymous_exec_memory        large writable+executable memory, no file behind it\n" +
+                "frida_port_open              frida-server answered on its default port");
 
             GUILayout.Space(8);
             Heading("beat: - heartbeat patterns");

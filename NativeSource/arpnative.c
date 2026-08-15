@@ -3,8 +3,11 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <netinet/in.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/syscall.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #define ARP_EXPORT __attribute__((visibility("default")))
@@ -350,6 +353,160 @@ ARP_EXPORT int arp_list_app_libraries(char *out, int out_size)
 
     arp_reader_close(&r);
     return count;
+}
+
+/* ---- runtime instrumentation ---- */
+
+#define ARP_INSTR_TRACER      0x01
+#define ARP_INSTR_ANON_EXEC   0x02
+#define ARP_INSTR_FRIDA_PORT  0x04
+
+static long arp_parse_dec_after(const char *line, const char *label)
+{
+    const char *p = strstr(line, label);
+    if (p == NULL) return -1;
+    return arp_parse_dec(p + strlen(label));
+}
+
+/*
+ * Someone is attached with ptrace. Frida's attach mode sets this, as does any
+ * debugger. One file read and no side effects, which is why this is preferred over
+ * the fork-and-ptrace trick: the version of that which actually works has to stop
+ * the process to find out, and stopping a VR app to check for debuggers is a worse
+ * outcome than the debugger.
+ */
+static int arp_tracer_present(void)
+{
+    arp_reader r;
+    char line[256];
+    int found = 0;
+
+    if (arp_reader_open(&r, "/proc/self/status") < 0) return 0;
+
+    while (arp_read_line(&r, line, (int)sizeof(line))) {
+        long pid = arp_parse_dec_after(line, "TracerPid:");
+        if (pid >= 0) {
+            found = pid != 0;
+            break;
+        }
+    }
+
+    arp_reader_close(&r);
+    return found ? ARP_INSTR_TRACER : 0;
+}
+
+/*
+ * A large writable-and-executable mapping that no file backs.
+ *
+ * Injected code has to live somewhere it can be both written and run, and a file
+ * cannot back it because it was never on disk. That makes this behavioural rather
+ * than a signature: it does not care what the tool is called or which one it is.
+ *
+ * Labelled anonymous regions are skipped - the runtime's own JIT cache appears as
+ * [anon:dalvik-jit-code-cache] and is legitimate. Needs baselining on a stock
+ * headset before it is allowed to enforce.
+ */
+static int arp_anonymous_exec_memory(void)
+{
+    arp_reader r;
+    char line[512];
+    int found = 0;
+
+    if (arp_reader_open(&r, "/proc/self/maps") < 0) return 0;
+
+    while (arp_read_line(&r, line, (int)sizeof(line))) {
+        int used = 0;
+        unsigned long start = arp_parse_hex(line, &used);
+        if (line[used] != '-') continue;
+
+        int cursor = used + 1;
+        unsigned long end = arp_parse_hex(line + cursor, &used);
+        cursor += used;
+
+        while (line[cursor] == ' ') cursor++;
+        if (line[cursor] != 'r' || line[cursor + 1] != 'w' || line[cursor + 2] != 'x') continue;
+
+        /* File-backed or labelled means it has an explanation. */
+        if (strchr(line, '/') != NULL) continue;
+        if (strchr(line, '[') != NULL) continue;
+
+        if (end > start && (end - start) > (512UL * 1024UL)) {
+            found = 1;
+            break;
+        }
+    }
+
+    arp_reader_close(&r);
+    return found ? ARP_INSTR_ANON_EXEC : 0;
+}
+
+/*
+ * frida-server listening on its default port.
+ *
+ * Port-open alone would only say something is bound there, so this completes the
+ * D-Bus handshake frida-server speaks: it answers AUTH with REJECT, and nothing
+ * else will. That is the difference between "a port is open" and "frida-server is
+ * on the other end", which matters when the answer can end in a ban.
+ *
+ * A closed port on loopback refuses immediately, so the timeout below is a bound
+ * for the odd case rather than the usual cost.
+ */
+static int arp_frida_port(int port)
+{
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    if (s < 0) return 0;
+
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 250000;
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
+    setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof tv);
+
+    struct sockaddr_in a;
+    memset(&a, 0, sizeof a);
+    a.sin_family = AF_INET;
+    a.sin_port = htons((unsigned short)port);
+    a.sin_addr.s_addr = htonl(0x7f000001);
+
+    if (connect(s, (struct sockaddr *)&a, sizeof a) != 0) {
+        close(s);
+        return 0;
+    }
+
+    static const char auth[] = "\x00" "AUTH\r\n";
+    if (send(s, auth, sizeof(auth) - 1, 0) <= 0) {
+        close(s);
+        return 0;
+    }
+
+    char reply[64];
+    memset(reply, 0, sizeof reply);
+    ssize_t got = recv(s, reply, sizeof(reply) - 1, 0);
+    close(s);
+
+    if (got <= 0) return 0;
+    return strstr(reply, "REJECT") != NULL ? 1 : 0;
+}
+
+/*
+ * Bit flags: 1 tracer attached, 2 anonymous executable memory, 4 frida-server.
+ *
+ * probe_ports is separate because it opens sockets. Nothing on a stock Quest binds
+ * 27042, so a hit there is close to conclusive - but it is still the only check here
+ * that touches the network, so the caller decides.
+ */
+ARP_EXPORT int arp_instrumentation_scan(int probe_ports)
+{
+    int flags = 0;
+
+    flags |= arp_tracer_present();
+    flags |= arp_anonymous_exec_memory();
+
+    if (probe_ports) {
+        if (arp_frida_port(27042) || arp_frida_port(27043)) flags |= ARP_INSTR_FRIDA_PORT;
+    }
+
+    return flags;
 }
 
 /* returns 1 enforcing, 0 permissive, -1 unknown */
